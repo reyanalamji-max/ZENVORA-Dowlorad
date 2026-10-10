@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#2359d1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ZENVORA">
+    <title>Videos · Zenvora</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/pwa.js" defer></script>
+    <script src="/videos.js" defer></script>
+  </head>
+  <body>
+    <header class="library-header">
+      <a class="library-brand brand-lockup" id="library-brand" href="/" aria-label="Zenvora home">
+        <img class="brand-mark" src="/logo.svg" alt="">
+        <span id="library-brand-name">Zenvora</span>
+      </a>
+      <nav class="page-nav" aria-label="Main navigation">
+        <a class="page-nav-link" href="/">Search</a>
+        <a class="page-nav-link" href="/apps">Apps</a>
+        <a class="page-nav-link active" href="/videos" aria-current="page">Videos</a>
+        <a class="page-nav-link" href="/download">Download</a>
+        <a class="page-nav-link" href="/account">Sign in</a>
+      </nav>
+    </header>
+    <main class="video-page">
+      <header class="video-page-heading">
+        <p class="eyebrow">YOUR LIBRARY</p>
+        <h1 id="video-heading">Videos</h1>
+        <p class="muted">A collection of videos picked by you.</p>
+      </header>
+      <p class="video-message" id="video-message" role="status" aria-live="polite">Loading videos…</p>
+      <section class="video-grid" id="video-grid" aria-label="Video library"></section>
+    </main>
+    <footer class="footer">
+      <span id="video-footer">Your video library</span>
+      <a href="/">Back to search</a>
+    </footer>
+  </body>
+</html>

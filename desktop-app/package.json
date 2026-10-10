@@ -1,0 +1,46 @@
+{
+  "name": "zenvora-desktop",
+  "version": "1.0.0",
+  "productName": "ZENVORA Search",
+  "description": "ZENVORA Search desktop app",
+  "author": "ZENVORA",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package": "electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "com.zenvora.search",
+    "productName": "ZENVORA Search",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "chrome.html",
+      "chrome.css",
+      "chrome-ui.js",
+      "preload.js",
+      "navigation.cjs",
+      "zenvora-icon.png",
+      "package.json"
+    ],
+    "win": {
+      "icon": "zenvora.ico",
+      "signAndEditExecutable": false,
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ZENVORA Search"
+    }
+  },
+  "devDependencies": {
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3"
+  }
+}

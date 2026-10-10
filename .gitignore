@@ -1,0 +1,9 @@
+.env
+data/
+node_modules/
+**/.gradle/
+**/build/
+**/local.properties
+*.jks
+*.keystore
+android/app-project/decompressed/

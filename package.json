@@ -1,0 +1,12 @@
+{
+  "name": "zenvora-search",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm install",
+    "start": "node server.js",
+    "android:init": "npx --yes @bubblewrap/cli@1.27.0 init --manifest=https://zenvora-ttu9.onrender.com/manifest.webmanifest --directory=android/app-project",
+    "android:build": "npx --yes @bubblewrap/cli@1.27.0 build --manifest=android/app-project"
+  }
+}

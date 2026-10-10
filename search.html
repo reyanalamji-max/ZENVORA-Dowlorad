@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#2359d1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ZENVORA">
+    <title>Zenvora search results</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/pwa.js" defer></script>
+    <script src="/search.js" defer></script>
+  </head>
+  <body class="results-body">
+    <header class="results-header">
+      <div class="results-brand-group">
+        <a class="results-brand" id="results-brand" href="/" aria-label="Zenvora home">
+          <img class="brand-mark" src="/logo.svg" alt="">
+          <span id="results-brand-name">Zenvora</span>
+        </a>
+        <a class="results-apps-link" href="/apps">Apps</a>
+        <a class="results-apps-link" href="/videos">Videos</a>
+        <a class="results-apps-link" href="/download">Download</a>
+        <a class="results-apps-link" href="/account">Sign in</a>
+      </div>
+      <form class="results-search-form" action="/search" method="get">
+        <label class="sr-only" for="results-query">Search the web, saved websites, and videos</label>
+        <input id="results-query" name="q" type="search" maxlength="200" autocomplete="off" required>
+        <button class="results-search-submit" type="submit">Search</button>
+      </form>
+    </header>
+    <main class="results-main">
+      <nav class="results-tabs" id="results-tabs" aria-label="Filter results"></nav>
+      <p class="results-summary" id="results-summary" role="status" aria-live="polite">Searching the web and your Zenvora library…</p>
+      <section class="search-results" id="search-results" aria-label="Zenvora search results"></section>
+      <nav class="search-pagination" id="search-pagination" aria-label="Search result pages" hidden></nav>
+    </main>
+    <footer class="footer">
+      <span id="results-footer">Web results by Serper · Saved results from Zenvora</span>
+      <a href="/">Back to Zenvora</a>
+    </footer>
+  </body>
+</html>

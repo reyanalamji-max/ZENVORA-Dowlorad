@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#2359d1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ZENVORA">
+    <title>Open website · Zenvora</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/pwa.js" defer></script>
+    <script src="/viewer.js" defer></script>
+  </head>
+  <body class="viewer-body">
+    <header class="library-header viewer-header">
+      <a class="library-brand brand-lockup" id="viewer-brand" href="/" aria-label="Zenvora home">
+        <img class="brand-mark" src="/logo.svg" alt="">
+        <span id="viewer-brand-name">Zenvora</span>
+      </a>
+      <form class="viewer-address-form" id="viewer-address-form">
+        <label class="sr-only" for="viewer-address">Website address</label>
+        <input id="viewer-address" name="url" type="url" placeholder="https://example.com" required>
+        <button class="search-submit" type="submit">Open</button>
+      </form>
+      <a class="viewer-original-link" id="viewer-original" href="/" target="_blank" rel="noopener noreferrer" hidden>Open website</a>
+    </header>
+    <main class="viewer-main">
+      <p class="viewer-notice" id="viewer-notice" role="status" aria-live="polite">Opening website inside Zenvora…</p>
+      <div class="viewer-error" id="viewer-error" role="alert" hidden></div>
+    </main>
+  </body>
+</html>

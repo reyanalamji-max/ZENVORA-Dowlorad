@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#2359d1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ZENVORA">
+    <title>Your account · Zenvora</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/pwa.js" defer></script>
+    <script src="/account.js" defer></script>
+  </head>
+  <body class="account-page">
+    <main class="account-card admin-card">
+      <a class="mini-brand brand-lockup" href="/" aria-label="Zenvora home">
+        <img class="brand-mark" src="/logo.svg" alt="">
+        <span>Zenvora</span>
+      </a>
+      <section id="auth-panel">
+        <h1>Your account</h1>
+        <p class="muted">Save websites to your account. Only you and the site admin can view them.</p>
+        <div class="account-forms">
+          <form id="register-form">
+            <h2>Create an account</h2>
+            <label for="register-username">Username</label>
+            <input id="register-username" name="username" type="text" minlength="3" maxlength="32" autocomplete="username" required>
+            <label for="register-password">Password (at least 12 characters)</label>
+            <input id="register-password" name="password" type="password" minlength="12" maxlength="1024" autocomplete="new-password" required>
+            <button class="primary-button" type="submit">Create account</button>
+            <p class="form-message" id="register-message" role="status" aria-live="polite"></p>
+          </form>
+          <form id="account-login-form">
+            <h2>Already have an account?</h2>
+            <label for="account-username">Username</label>
+            <input id="account-username" name="username" type="text" maxlength="32" autocomplete="username" required>
+            <label for="account-password">Password</label>
+            <input id="account-password" name="password" type="password" maxlength="1024" autocomplete="current-password" required>
+            <button class="primary-button" type="submit">Sign in</button>
+            <p class="form-message" id="account-login-message" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+      <section id="profile-panel" hidden>
+        <header class="admin-heading">
+          <div>
+            <h1>Your account</h1>
+            <p class="muted">Only you and the site admin can view your saved websites. Searches are not stored.</p>
+          </div>
+          <button class="text-button" id="account-logout" type="button">Sign out</button>
+        </header>
+        <form id="profile-form">
+          <label for="profile-username">Username</label>
+          <input id="profile-username" name="username" type="text" minlength="3" maxlength="32" autocomplete="username" required>
+          <label for="current-password">Current password (required to save changes)</label>
+          <input id="current-password" name="currentPassword" type="password" maxlength="1024" autocomplete="current-password" required>
+          <label for="new-password">New password (leave blank to keep current)</label>
+          <input id="new-password" name="newPassword" type="password" minlength="12" maxlength="1024" autocomplete="new-password">
+          <button class="primary-button" type="submit">Update account</button>
+          <p class="form-message" id="profile-message" role="status" aria-live="polite"></p>
+        </form>
+        <section class="shortcut-editor" aria-labelledby="personal-sites-heading">
+          <div class="shortcut-editor-heading">
+            <div>
+              <h2 id="personal-sites-heading">Your private websites</h2>
+              <p class="muted">Websites you submit in search are saved here for your account only.</p>
+            </div>
+          </div>
+          <div class="shortcut-list account-website-list" id="account-websites"></div>
+          <p class="form-message" id="websites-message" role="status" aria-live="polite"></p>
+        </section>
+      </section>
+      <a class="back-link" href="/">Back to search</a>
+    </main>
+  </body>
+</html>

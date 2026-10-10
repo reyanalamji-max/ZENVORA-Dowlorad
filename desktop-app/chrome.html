@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+    <meta name="theme-color" content="#d8e9e8">
+    <title>ZENVORA</title>
+    <link rel="icon" href="zenvora-icon.png">
+    <link rel="stylesheet" href="chrome.css">
+    <script src="chrome-ui.js" defer></script>
+  </head>
+  <body>
+    <header class="browser-chrome">
+      <div class="tabbar" id="tabbar" role="tablist" aria-label="Open tabs">
+        <button class="tab-item is-active" id="active-tab" type="button" role="tab" aria-selected="true" aria-label="ZENVORA Search">
+          <img class="tab-favicon" src="zenvora-icon.png" alt="">
+          <span class="tab-title">ZENVORA Search</span>
+          <span class="tab-loading" aria-hidden="true"></span>
+          <span class="tab-close" aria-hidden="true">×</span>
+        </button>
+        <button class="new-tab-button" id="new-tab" type="button" title="New tab (Ctrl+T)" aria-label="New tab">+</button>
+      </div>
+      <div class="toolbar">
+        <div class="history-controls">
+          <button class="toolbar-button" id="back-button" type="button" title="Back" aria-label="Back" disabled>←</button>
+          <button class="toolbar-button" id="forward-button" type="button" title="Forward" aria-label="Forward" disabled>→</button>
+          <button class="toolbar-button" id="reload-button" type="button" title="Reload" aria-label="Reload">↻</button>
+          <button class="toolbar-button home-button" id="home-button" type="button" title="ZENVORA home" aria-label="ZENVORA home">⌂</button>
+        </div>
+        <form class="address-form" id="address-form" autocomplete="off">
+          <span class="address-mark" aria-hidden="true">⌕</span>
+          <label class="sr-only" for="address-input">Search ZENVORA or enter a website</label>
+          <input id="address-input" type="text" inputmode="url" spellcheck="false" placeholder="Search ZENVORA or enter a website address">
+          <button class="address-go" type="submit" title="Go" aria-label="Go">↵</button>
+        </form>
+        <button class="toolbar-button more-button" id="more-button" type="button" title="ZENVORA" aria-label="ZENVORA">⋮</button>
+      </div>
+    </header>
+  </body>
+</html>
