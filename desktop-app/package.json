@@ -7,7 +7,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "package": "electron-builder --win nsis"
+    "package": "electron-builder --win nsis",
+    "package:release": "node package-release.cjs"
   },
   "build": {
     "appId": "com.zenvora.search",
@@ -27,7 +28,6 @@
     ],
     "win": {
       "icon": "zenvora.ico",
-      "signAndEditExecutable": false,
       "target": "nsis"
     },
     "nsis": {

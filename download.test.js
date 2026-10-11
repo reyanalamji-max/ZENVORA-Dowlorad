@@ -28,6 +28,7 @@ test("download page links to the branded Windows installer", async () => {
   const html = await response.text();
   assert.match(html, /Download for Windows/);
   assert.match(html, /href="\/download-app"/);
+  assert.match(html, /Windows may show a security warning for unsigned or new installers/);
   assert.match(html, /ZENVORA goes where you go/);
   assert.match(html, /id="phone-install"[^>]+href="https:\/\/zenvora-ttu9\.onrender\.com\/"[^>]+hidden/);
   assert.match(html, /Open &amp; install ZENVORA/);

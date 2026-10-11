@@ -18,10 +18,14 @@ Run `node --test download.test.js` from the project root to check the landing pa
 2. Run `npm run package`.
 3. The installer is written to `desktop-app/dist/ZENVORA Search Setup 1.0.0.exe`.
 
+`npm run package` creates an unsigned development installer. Do not publish it as an official release. For a signed release, obtain a trusted Windows code-signing certificate, keep its PFX and password out of the repository, and set `CSC_LINK` to the certificate file and `CSC_KEY_PASSWORD` to its password in a secure build environment. Then run `npm run package:release` from `desktop-app`; this release command fails if a signature cannot be applied. Verify the generated installer with Windows `Get-AuthenticodeSignature` before uploading it.
+
+Signing identifies the publisher and helps build download reputation, but does not guarantee that Windows SmartScreen or browser warnings disappear immediately. New or changed releases can still be warned about until their reputation is established. Do not disable or bypass those protections; publish releases consistently from the official HTTPS domain and submit suspected false positives to the relevant vendor.
+
 The desktop app uses Electron to open `https://zenvora-ttu9.onrender.com/` in a browser-style ZENVORA window with tabs, an address/search bar, and back/forward controls. HTTP and HTTPS links stay inside ZENVORA; links opened in a new window become another ZENVORA tab. Native operating-system and store protocols are blocked rather than launched in another app. It is not an offline copy of the search platform. The app installer is built for Windows x64; mobile devices use the install instructions on the website.
 
 Run `node --test navigation.test.cjs` in `desktop-app` to verify app-internal tabs and native protocol blocking.
 
 ## Deploy
 
-Build the Windows installer before deploying so `/download-app` has a file to serve. For Render, configure the build command to install the server and desktop-app dependencies and package the Windows app, then start the server with `npm start`. Only publish an installer that has been tested on a Windows device.
+Build and test the signed Windows installer with `npm run package:release` before deploying so `/download-app` serves the signed release rather than an unsigned development build. Configure the build environment with the signing secrets; never commit the certificate or its password. For Render, configure the build command to install the server and desktop-app dependencies and create the signed Windows package, then start the server with `npm start`. Only publish an installer that has been tested on a Windows device.
