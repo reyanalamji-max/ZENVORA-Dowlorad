@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { after, before, test } from "node:test";
@@ -22,7 +22,7 @@ after(async () => {
 });
 
 test("download page links to the branded Windows installer", async () => {
-  const response = await fetch(baseUrl);
+  const response = await fetch(`${baseUrl}/download`);
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type"), /text\/html/);
   const html = await response.text();
@@ -60,9 +60,47 @@ test("download-app reports a missing installer as an actionable service-unavaila
     const response = await fetch(`http://127.0.0.1:${unavailableServer.address().port}/download-app`);
     assert.equal(response.status, 503);
     assert.deepEqual(await response.json(), {
-      error: "The Windows installer is not available. Set the Render build command to `npm run build` and redeploy."
+      error: "The Windows installer is temporarily unavailable. Please try again later."
     });
   } finally {
     await new Promise((resolve, reject) => unavailableServer.close((error) => error ? reject(error) : resolve()));
+  }
+});
+
+test("download-app supports byte-range requests so interrupted downloads can resume", async () => {
+  const installerPath = path.join(dataDir, "range-test.exe");
+  await writeFile(installerPath, Buffer.from("0123456789"));
+  const rangeServer = createApp({ dataDir, installerPath });
+  await new Promise((resolve) => rangeServer.listen(0, "127.0.0.1", resolve));
+
+  try {
+    const response = await fetch(`http://127.0.0.1:${rangeServer.address().port}/download-app`, {
+      headers: { Range: "bytes=3-6" }
+    });
+    assert.equal(response.status, 206);
+    assert.equal(response.headers.get("accept-ranges"), "bytes");
+    assert.equal(response.headers.get("content-range"), "bytes 3-6/10");
+    assert.equal(response.headers.get("content-length"), "4");
+    assert.equal(await response.text(), "3456");
+  } finally {
+    await new Promise((resolve, reject) => rangeServer.close((error) => error ? reject(error) : resolve()));
+  }
+});
+
+test("download-app rejects an unsatisfiable byte range with the correct file size", async () => {
+  const installerPath = path.join(dataDir, "range-test.exe");
+  await writeFile(installerPath, Buffer.from("0123456789"));
+  const rangeServer = createApp({ dataDir, installerPath });
+  await new Promise((resolve) => rangeServer.listen(0, "127.0.0.1", resolve));
+
+  try {
+    const response = await fetch(`http://127.0.0.1:${rangeServer.address().port}/download-app`, {
+      headers: { Range: "bytes=10-" }
+    });
+    assert.equal(response.status, 416);
+    assert.equal(response.headers.get("content-range"), "bytes */10");
+    assert.equal(await response.text(), "");
+  } finally {
+    await new Promise((resolve, reject) => rangeServer.close((error) => error ? reject(error) : resolve()));
   }
 });

@@ -12,6 +12,8 @@ const ACCOUNT_COOKIE = "zenvora_account";
 const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 const MAX_BODY_BYTES = 64 * 1024;
 const MAX_ACCOUNT_WEBSITES = 500;
+const MAX_ASSISTANT_MESSAGES = 12;
+const MAX_ASSISTANT_MESSAGE_LENGTH = 4000;
 const scrypt = promisify(scryptCallback);
 const DEFAULT_SETTINGS = {
   siteName: "Zenvora",
@@ -21,9 +23,23 @@ const DEFAULT_SETTINGS = {
   videos: []
 };
 const STATIC_FILES = {
-  "/": ["download.html", "text/html; charset=utf-8"],
+  "/": ["index.html", "text/html; charset=utf-8"],
+  "/search": ["search.html", "text/html; charset=utf-8"],
+  "/apps": ["apps.html", "text/html; charset=utf-8"],
+  "/videos": ["videos.html", "text/html; charset=utf-8"],
+  "/account": ["account.html", "text/html; charset=utf-8"],
+  "/open": ["viewer.html", "text/html; charset=utf-8"],
+  "/assistant": ["assistant.html", "text/html; charset=utf-8"],
   "/download": ["download.html", "text/html; charset=utf-8"],
   "/download-app": ["desktop-app/dist/ZENVORA Search Setup 1.0.0.exe", "application/octet-stream"],
+  "/app.js": ["app.js", "text/javascript; charset=utf-8"],
+  "/search.js": ["search.js", "text/javascript; charset=utf-8"],
+  "/apps.js": ["apps.js", "text/javascript; charset=utf-8"],
+  "/videos.js": ["videos.js", "text/javascript; charset=utf-8"],
+  "/account.js": ["account.js", "text/javascript; charset=utf-8"],
+  "/viewer.js": ["viewer.js", "text/javascript; charset=utf-8"],
+  "/assistant.js": ["assistant.js", "text/javascript; charset=utf-8"],
+  "/assistant.css": ["assistant.css", "text/css; charset=utf-8"],
   "/offline.html": ["offline.html", "text/html; charset=utf-8"],
   "/manifest.webmanifest": ["manifest.webmanifest", "application/manifest+json; charset=utf-8"],
   "/service-worker.js": ["service-worker.js", "text/javascript; charset=utf-8"],
@@ -188,21 +204,59 @@ function sendJson(response, status, value, headers = {}) {
   });
 }
 
-async function sendInstaller(response, installerPath, headOnly) {
+async function sendInstaller(request, response, installerPath, headOnly) {
   let installerStats;
   try {
     installerStats = await stat(installerPath);
   } catch (error) {
     if (error.code !== "ENOENT") throw error;
+    console.error("Windows installer is missing:", error);
     sendJson(response, 503, {
-      error: "The Windows installer is not available. Set the Render build command to `npm run build` and redeploy."
+      error: "The Windows installer is temporarily unavailable. Please try again later."
     });
     return;
   }
-  response.writeHead(200, {
+  const rangeHeader = request.headers.range;
+  let byteRange = null;
+  if (typeof rangeHeader === "string") {
+    const match = rangeHeader.match(/^bytes=(\d*)-(\d*)$/);
+    if (match && (match[1] || match[2])) {
+      const size = installerStats.size;
+      if (!match[1]) {
+        const suffixLength = Number(match[2]);
+        if (Number.isSafeInteger(suffixLength) && suffixLength > 0 && size > 0) {
+          byteRange = { start: Math.max(size - suffixLength, 0), end: size - 1 };
+        }
+      } else {
+        const start = Number(match[1]);
+        const requestedEnd = match[2] ? Number(match[2]) : size - 1;
+        if (Number.isSafeInteger(start) && Number.isSafeInteger(requestedEnd) && start < size && requestedEnd >= start) {
+          byteRange = { start, end: Math.min(requestedEnd, size - 1) };
+        }
+      }
+      if (!byteRange) {
+        response.writeHead(416, {
+          "Content-Range": `bytes */${size}`,
+          "Accept-Ranges": "bytes",
+          "Content-Length": "0",
+          "Cache-Control": "no-store",
+          "X-Content-Type-Options": "nosniff",
+          "Referrer-Policy": "no-referrer",
+          "X-Frame-Options": "DENY"
+        });
+        response.end();
+        return;
+      }
+    }
+  }
+
+  const contentLength = byteRange ? byteRange.end - byteRange.start + 1 : installerStats.size;
+  response.writeHead(byteRange ? 206 : 200, {
     "Content-Type": "application/octet-stream",
-    "Content-Length": installerStats.size,
+    "Content-Length": contentLength,
     "Content-Disposition": "attachment; filename=\"ZENVORA-Search-Setup.exe\"",
+    "Accept-Ranges": "bytes",
+    ...(byteRange ? { "Content-Range": `bytes ${byteRange.start}-${byteRange.end}/${installerStats.size}` } : {}),
     "Cache-Control": "no-store",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
@@ -214,7 +268,7 @@ async function sendInstaller(response, installerPath, headOnly) {
     return;
   }
 
-  const installerStream = createReadStream(installerPath);
+  const installerStream = createReadStream(installerPath, byteRange ?? undefined);
   installerStream.on("error", (error) => {
     console.error("Installer download stream failed:", error);
     response.destroy(error);
@@ -339,6 +393,7 @@ export function createApp({
   dataDir = path.join(ROOT, "data"),
   installerPath = path.join(ROOT, STATIC_FILES["/download-app"][0]),
   serperApiKey,
+  geminiApiKey,
   fetchImpl = fetch,
   androidAppId,
   androidSha256Fingerprints = [],
@@ -443,14 +498,6 @@ export function createApp({
     const url = new URL(request.url, `http://${host}`);
     const authenticated = getSession(request);
     const accountSession = getAccount(request);
-    if (["/admin", "/admin/", "/admin-login", "/account", "/search", "/open", "/apps", "/videos"].includes(url.pathname)) {
-      send(response, 302, "", "text/plain; charset=utf-8", { Location: "/download" });
-      return;
-    }
-    if (url.pathname.startsWith("/api/admin") || url.pathname === "/api/login" || url.pathname.startsWith("/api/account") || url.pathname === "/api/search" || url.pathname === "/api/settings" || url.pathname === "/api/session") {
-      sendJson(response, 404, { error: "This download-only site does not use admin, account, or search features." });
-      return;
-    }
     if (url.pathname === "/.well-known/assetlinks.json" && request.method === "GET") {
       const fingerprints = Array.isArray(androidSha256Fingerprints)
         ? androidSha256Fingerprints.map((value) => typeof value === "string" ? value.trim().toUpperCase() : "")
@@ -912,7 +959,93 @@ export function createApp({
     }
 
     if (url.pathname === "/download-app" && (request.method === "GET" || request.method === "HEAD")) {
-      await sendInstaller(response, installerPath, request.method === "HEAD");
+      await sendInstaller(request, response, installerPath, request.method === "HEAD");
+      return;
+    }
+
+    if (url.pathname === "/api/assistant" && request.method === "POST") {
+      if (!sameOrigin(request)) {
+        sendJson(response, 403, { error: "Request origin is not allowed." });
+        return;
+      }
+      if (!geminiApiKey) {
+        sendJson(response, 503, { error: "AI chat is temporarily unavailable." });
+        return;
+      }
+      if (!checkAuthRateLimit(request, "assistant", 20, 60 * 1000)) {
+        sendJson(response, 429, { error: "Too many AI messages. Please wait before trying again." });
+        return;
+      }
+      const body = await readJson(request);
+      if (!isObject(body) || !Array.isArray(body.messages)
+        || body.messages.length < 1 || body.messages.length > MAX_ASSISTANT_MESSAGES) {
+        sendJson(response, 400, { error: `Send between 1 and ${MAX_ASSISTANT_MESSAGES} chat messages.` });
+        return;
+      }
+      const messages = [];
+      for (let index = 0; index < body.messages.length; index += 1) {
+        const message = body.messages[index];
+        if (!isObject(message) || !["user", "model"].includes(message.role)
+          || typeof message.text !== "string" || !message.text.trim()
+          || message.text.length > MAX_ASSISTANT_MESSAGE_LENGTH
+          || (index === 0 && message.role !== "user")
+          || (index > 0 && message.role === body.messages[index - 1]?.role)) {
+          sendJson(response, 400, { error: "Chat messages must alternate between user and assistant and be 1 to 4000 characters." });
+          return;
+        }
+        messages.push({ role: message.role, parts: [{ text: message.text.trim() }] });
+      }
+      if (messages[messages.length - 1].role !== "user") {
+        sendJson(response, 400, { error: "Send a user message to continue the conversation." });
+        return;
+      }
+
+      let providerResponse;
+      try {
+        providerResponse = await fetchImpl(
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": geminiApiKey
+            },
+            body: JSON.stringify({
+              systemInstruction: {
+                parts: [{ text: "You are ZENVORA AI, a helpful conversational assistant. Answer naturally in the language used by the user. Be clear, respectful, and concise." }]
+              },
+              contents: messages,
+              generationConfig: { maxOutputTokens: 1024 }
+            }),
+            signal: AbortSignal.timeout(20000)
+          }
+        );
+      } catch (error) {
+        console.error("Gemini assistant request failed:", error);
+        sendJson(response, 502, { error: "The AI service could not be reached. Please try again." });
+        return;
+      }
+      if (!providerResponse.ok) {
+        console.error("Gemini assistant returned HTTP", providerResponse.status);
+        sendJson(response, 502, { error: "The AI service could not answer right now. Please try again." });
+        return;
+      }
+      let providerData;
+      try {
+        providerData = await providerResponse.json();
+      } catch {
+        sendJson(response, 502, { error: "The AI service returned an invalid response." });
+        return;
+      }
+      const answer = providerData?.candidates?.[0]?.content?.parts
+        ?.map((part) => typeof part.text === "string" ? part.text : "")
+        .join("")
+        .trim();
+      if (!answer) {
+        sendJson(response, 502, { error: "The AI service returned no answer. Please try again." });
+        return;
+      }
+      sendJson(response, 200, { answer });
       return;
     }
 
@@ -976,6 +1109,7 @@ async function start() {
     adminPassword: process.env.ADMIN_PASSWORD,
     dataDir: process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(ROOT, "data"),
     serperApiKey: process.env.SERPER_API_KEY,
+    geminiApiKey: process.env.GEMINI_API_KEY,
     androidAppId: process.env.ANDROID_APP_ID,
     androidSha256Fingerprints: (process.env.ANDROID_SHA256_CERT_FINGERPRINTS ?? "")
       .split(",").map((value) => value.trim()).filter(Boolean),

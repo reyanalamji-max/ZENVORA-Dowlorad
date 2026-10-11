@@ -1,6 +1,6 @@
 const { app, BrowserWindow, WebContentsView, ipcMain, shell } = require("electron");
 const path = require("node:path");
-const { installInAppNavigation, isWebUrl } = require("./navigation.cjs");
+const { getFaviconUrl, installInAppNavigation, isWebUrl } = require("./navigation.cjs");
 
 const START_URL = "https://zenvora-ttu9.onrender.com/";
 const CHROME_HEIGHT = 112;
@@ -20,6 +20,7 @@ function getTabSnapshot(tab) {
     id: tab.id,
     title: tab.title,
     url: webContents.getURL() || START_URL,
+    favicon: tab.favicon,
     loading: webContents.isLoading(),
     canGoBack: webContents.navigationHistory.canGoBack(),
     canGoForward: webContents.navigationHistory.canGoForward()
@@ -104,7 +105,7 @@ function createTab(address = START_URL, shouldFocus = true) {
       sandbox: true
     }
   });
-  const tab = { id: tabId, title: "New tab", view };
+  const tab = { id: tabId, title: "New tab", view, favicon: getFaviconUrl([], address) };
   tabs.set(tabId, tab);
   installInAppNavigation(view.webContents, (url) => createTab(url, true));
 
@@ -123,8 +124,16 @@ function createTab(address = START_URL, shouldFocus = true) {
     sendBrowserState();
     sendNavigationState(tab);
   });
-  view.webContents.on("did-navigate", () => sendNavigationState(tab));
+  view.webContents.on("did-navigate", () => {
+    tab.favicon = getFaviconUrl([], view.webContents.getURL() || address);
+    sendNavigationState(tab);
+    sendBrowserState();
+  });
   view.webContents.on("did-navigate-in-page", () => sendNavigationState(tab));
+  view.webContents.on("page-favicon-updated", (_event, favicons) => {
+    tab.favicon = getFaviconUrl(favicons, view.webContents.getURL() || address);
+    sendBrowserState();
+  });
   view.webContents.on("destroyed", () => {
     if (tabs.get(tabId) !== tab) return;
     tabs.delete(tabId);

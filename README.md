@@ -1,6 +1,6 @@
 # ZENVORA Download
 
-This project serves a download-focused landing page for ZENVORA Search. The Windows download is an installer for a desktop app that opens the official ZENVORA Search website; online search and account features require an internet connection. On Android, open the official site in Chrome and use Install app. On iPhone/iPad, open it in Safari and choose Share → Add to Home Screen. These phone installs use the website as an installable web app; this project does not provide a native APK or App Store package.
+ZENVORA Search provides web search, saved websites, videos, account features, and a conversational AI page. The AI assistant uses the Gemini API when `GEMINI_API_KEY` is configured and supports typed chat plus browser speech input/output. The API key stays on the server and is never sent to the browser. The Windows download is an installer for a desktop app that opens the official ZENVORA Search website in an in-app browser with site favicons and separate tabs; web links that request a new window open as another tab. Downloads support byte ranges so compatible browsers can resume an interrupted installer transfer. On Android, open the official site in Chrome and use Install app. On iPhone/iPad, open it in Safari and choose Share → Add to Home Screen. These phone installs use the website as an installable web app; this project does not provide a native APK or App Store package.
 
 ## Run locally
 
@@ -20,7 +20,7 @@ Signing identifies the publisher and helps build download reputation, but does n
 
 The desktop app uses Electron to open `https://zenvora-ttu9.onrender.com/` in a browser-style ZENVORA window with tabs, an address/search bar, and back/forward controls. HTTP and HTTPS links stay inside ZENVORA; links opened in a new window become another ZENVORA tab. Native operating-system and store protocols are blocked rather than launched in another app. It is not an offline copy of the search platform. The app installer is built for Windows x64; mobile devices use the install instructions on the website.
 
-Run `node --test navigation.test.cjs` in `desktop-app` to verify app-internal tabs and native protocol blocking.
+Run `node --test navigation.test.cjs` in `desktop-app` to verify app-internal tabs, site favicons, and native protocol blocking.
 
 ## Deploy
 

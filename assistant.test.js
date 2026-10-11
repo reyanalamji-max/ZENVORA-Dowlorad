@@ -1,0 +1,103 @@
+import assert from "node:assert/strict";
+import { mkdtemp, rm } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { after, before, test } from "node:test";
+import { createApp } from "./server.js";
+
+let dataDir;
+let servers = [];
+
+async function listen(server) {
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  servers.push(server);
+  return `http://127.0.0.1:${server.address().port}`;
+}
+
+before(async () => {
+  dataDir = await mkdtemp(path.join(os.tmpdir(), "zenvora-assistant-test-"));
+});
+
+after(async () => {
+  await Promise.all(servers.map((server) =>
+    new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()))
+  ));
+  await rm(dataDir, { recursive: true, force: true });
+});
+
+test("AI page and chat endpoint serve the platform and proxy Gemini without exposing the API key", async () => {
+  let providerUrl;
+  let providerOptions;
+  const server = createApp({
+    dataDir,
+    geminiApiKey: "test-gemini-key",
+    fetchImpl: async (url, options) => {
+      providerUrl = url;
+      providerOptions = options;
+      return new Response(JSON.stringify({
+        candidates: [{ content: { parts: [{ text: "नमस्ते! मैं आपकी कैसे मदद करूँ?" }] } }]
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+  });
+  const baseUrl = await listen(server);
+
+  const home = await fetch(baseUrl);
+  assert.equal(home.status, 200);
+  assert.match(await home.text(), /Talk to ZENVORA AI/);
+  const assistantPage = await fetch(`${baseUrl}/assistant`);
+  assert.equal(assistantPage.status, 200);
+  assert.match(await assistantPage.text(), /Talk to ZENVORA AI/);
+
+  const response = await fetch(`${baseUrl}/api/assistant`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: baseUrl },
+    body: JSON.stringify({ messages: [{ role: "user", text: "नमस्ते" }] })
+  });
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { answer: "नमस्ते! मैं आपकी कैसे मदद करूँ?" });
+  assert.equal(providerUrl, "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent");
+  assert.equal(providerOptions.headers["x-goog-api-key"], "test-gemini-key");
+  assert.equal(providerOptions.headers.Authorization, undefined);
+  assert.deepEqual(JSON.parse(providerOptions.body).contents, [
+    { role: "user", parts: [{ text: "नमस्ते" }] }
+  ]);
+});
+
+test("AI chat requires same-origin requests and validates conversation turns", async () => {
+  const server = createApp({
+    dataDir,
+    geminiApiKey: "test-gemini-key",
+    fetchImpl: async () => assert.fail("invalid requests must not reach Gemini")
+  });
+  const baseUrl = await listen(server);
+  const headers = { "Content-Type": "application/json", Origin: baseUrl };
+
+  const crossOrigin = await fetch(`${baseUrl}/api/assistant`, {
+    method: "POST",
+    headers: { ...headers, Origin: "https://attacker.example" },
+    body: JSON.stringify({ messages: [{ role: "user", text: "Hello" }] })
+  });
+  assert.equal(crossOrigin.status, 403);
+
+  const invalidTurns = await fetch(`${baseUrl}/api/assistant`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ messages: [
+      { role: "user", text: "Hello" },
+      { role: "user", text: "Repeat" }
+    ] })
+  });
+  assert.equal(invalidTurns.status, 400);
+});
+
+test("AI chat reports a clear unavailable response when Gemini is not configured", async () => {
+  const server = createApp({ dataDir });
+  const baseUrl = await listen(server);
+  const response = await fetch(`${baseUrl}/api/assistant`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: baseUrl },
+    body: JSON.stringify({ messages: [{ role: "user", text: "Hello" }] })
+  });
+  assert.equal(response.status, 503);
+  assert.deepEqual(await response.json(), { error: "AI chat is temporarily unavailable." });
+});

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#2359d1">
+    <meta name="description" content="Chat naturally with ZENVORA AI using text or voice.">
+    <title>ZENVORA AI</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/assistant.css">
+    <script src="/assistant.js" defer></script>
+  </head>
+  <body class="assistant-body">
+    <header class="assistant-header">
+      <a class="assistant-brand" href="/" aria-label="ZENVORA home">
+        <img src="/logo.svg" alt="" width="36" height="36">
+        <span>ZENVORA</span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="/">Search</a>
+        <a href="/apps">Apps</a>
+        <a href="/download">Download</a>
+      </nav>
+    </header>
+    <main class="assistant-main">
+      <section class="assistant-card" aria-labelledby="assistant-title">
+        <div class="assistant-heading">
+          <span class="assistant-mark" aria-hidden="true">✦</span>
+          <div>
+            <p class="assistant-eyebrow">YOUR CONVERSATIONAL ASSISTANT</p>
+            <h1 id="assistant-title">Talk to ZENVORA AI</h1>
+            <p>Ask a question in your own words. Type or use your microphone.</p>
+          </div>
+          <button class="assistant-clear" id="clear-chat" type="button">New chat</button>
+        </div>
+        <div class="assistant-conversation" id="conversation" role="log" aria-live="polite" aria-relevant="additions text">
+          <p class="assistant-welcome">Hi! What would you like to talk about?</p>
+        </div>
+        <form class="assistant-form" id="assistant-form">
+          <label class="sr-only" for="assistant-input">Message ZENVORA AI</label>
+          <textarea id="assistant-input" maxlength="4000" rows="1" placeholder="Message ZENVORA AI…" required></textarea>
+          <div class="assistant-controls">
+            <div class="assistant-voice-controls">
+              <button class="assistant-mic" id="voice-input" type="button" aria-label="Speak your message">🎙 <span>Talk</span></button>
+              <label class="assistant-language-label" for="voice-language">Speech</label>
+              <select id="voice-language" aria-label="Speech language">
+                <option value="hi-IN">हिन्दी</option>
+                <option value="en-IN">English (India)</option>
+                <option value="en-US">English (US)</option>
+              </select>
+              <label class="assistant-speak-toggle"><input id="speak-replies" type="checkbox" checked> Speak replies</label>
+            </div>
+            <button class="assistant-send" id="send-message" type="submit">Send</button>
+          </div>
+        </form>
+        <p class="assistant-status" id="assistant-status" role="status" aria-live="polite"></p>
+        <p class="assistant-disclaimer">AI responses can be inaccurate. Check important information from trusted sources.</p>
+      </section>
+    </main>
+    <script src="/pwa.js" defer></script>
+  </body>
+</html>

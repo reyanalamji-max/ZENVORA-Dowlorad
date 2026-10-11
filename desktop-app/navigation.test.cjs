@@ -1,6 +1,16 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
-const { installInAppNavigation, isWebUrl } = require("./navigation.cjs");
+const { getFaviconUrl, installInAppNavigation, isWebUrl } = require("./navigation.cjs");
+
+test("tabs use a site's web favicon and safely fall back to its origin icon", () => {
+  assert.equal(
+    getFaviconUrl(["data:image/png;base64,AAAA", "https://cdn.example.org/site-icon.png"], "https://example.org/page"),
+    "https://cdn.example.org/site-icon.png"
+  );
+  assert.equal(getFaviconUrl(["data:image/png;base64,AAAA"], "https://example.org/page"), "data:image/png;base64,AAAA");
+  assert.equal(getFaviconUrl([], "https://example.org/page"), "https://example.org/favicon.ico");
+  assert.equal(getFaviconUrl(["file:///secret.ico"], "javascript:alert(1)"), null);
+});
 
 test("normal web links navigate in their current ZENVORA tab", () => {
   const handlers = new Map();

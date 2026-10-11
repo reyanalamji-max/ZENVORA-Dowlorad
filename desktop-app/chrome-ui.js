@@ -27,8 +27,12 @@ function renderTabs() {
 
     const icon = document.createElement("img");
     icon.className = "tab-favicon";
-    icon.src = "zenvora-icon.png";
     icon.alt = "";
+    icon.src = tab.favicon || "zenvora-icon.png";
+    icon.addEventListener("error", () => {
+      icon.onerror = null;
+      icon.src = "zenvora-icon.png";
+    }, { once: true });
 
     const title = document.createElement("span");
     title.className = "tab-title";
