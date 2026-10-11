@@ -29,20 +29,27 @@
           <span class="assistant-mark" aria-hidden="true">✦</span>
           <div>
             <p class="assistant-eyebrow">YOUR CONVERSATIONAL ASSISTANT</p>
-            <h1 id="assistant-title">Talk to ZENVORA AI</h1>
-            <p>Ask a question in your own words. Type or use your microphone.</p>
+            <h1 id="assistant-title">ZENVORA AI Mode</h1>
+            <p>Chat by typing or start a hands-free voice conversation.</p>
           </div>
           <button class="assistant-clear" id="clear-chat" type="button">New chat</button>
         </div>
         <div class="assistant-conversation" id="conversation" role="log" aria-live="polite" aria-relevant="additions text">
           <p class="assistant-welcome">Hi! What would you like to talk about?</p>
         </div>
+        <div class="voice-mode-panel">
+          <button class="voice-mode-button" id="voice-mode" type="button" aria-pressed="false">
+            <span class="voice-mode-icon" aria-hidden="true">🎙</span>
+            <span id="voice-mode-label">Start voice conversation</span>
+          </button>
+          <span class="voice-mode-hint">Speak naturally; ZENVORA listens and replies aloud.</span>
+        </div>
         <form class="assistant-form" id="assistant-form">
           <label class="sr-only" for="assistant-input">Message ZENVORA AI</label>
           <textarea id="assistant-input" maxlength="4000" rows="1" placeholder="Message ZENVORA AI…" required></textarea>
           <div class="assistant-controls">
             <div class="assistant-voice-controls">
-              <button class="assistant-mic" id="voice-input" type="button" aria-label="Speak your message">🎙 <span>Talk</span></button>
+              <button class="assistant-mic" id="voice-input" type="button" aria-label="Dictate one message">🎙 <span>Dictate</span></button>
               <label class="assistant-language-label" for="voice-language">Speech</label>
               <select id="voice-language" aria-label="Speech language">
                 <option value="hi-IN">हिन्दी</option>

@@ -119,6 +119,59 @@
   border-bottom: 1px solid #edf0f4;
 }
 
+.voice-mode-panel {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin: 0 0 16px;
+}
+
+.voice-mode-button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 18px;
+  color: #fff;
+  background: linear-gradient(115deg, #4c70e8, #7652d8 58%, #974fc5);
+  border: 0;
+  border-radius: 24px;
+  box-shadow: 0 6px 18px rgb(91 76 206 / 24%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.voice-mode-button:hover {
+  filter: saturate(1.16) brightness(1.08);
+  box-shadow: 0 10px 25px rgb(91 76 206 / 34%);
+  transform: translateY(-2px);
+}
+
+.voice-mode-button[aria-pressed="true"] {
+  background: linear-gradient(115deg, #d84b65, #bd3c70);
+  box-shadow: 0 6px 18px rgb(189 60 112 / 23%);
+}
+
+.voice-mode-button:disabled {
+  cursor: not-allowed;
+  opacity: .58;
+  transform: none;
+}
+
+.voice-mode-icon {
+  font-size: 17px;
+}
+
+.voice-mode-hint {
+  color: #748092;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .assistant-welcome,
 .assistant-message {
   max-width: min(88%, 620px);
@@ -143,6 +196,20 @@
 .assistant-message-pending {
   color: #687078;
   font-style: italic;
+}
+
+.assistant-message:not(.assistant-message-user):not(.assistant-message-pending) {
+  width: fit-content;
+  color: transparent;
+  background: linear-gradient(100deg, #fb4a9b 0%, #9259ff 22%, #32c8ff 45%, #38dcad 65%, #ffd05a 82%, #fb4a9b 100%);
+  background-size: 260% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: assistant-rgb-flow 5s linear infinite;
+}
+
+@keyframes assistant-rgb-flow {
+  to { background-position: 260% 0; }
 }
 
 .assistant-form {
@@ -305,6 +372,17 @@
     margin: 16px auto;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .assistant-message:not(.assistant-message-user):not(.assistant-message-pending) {
+      animation: none;
+      background-position: 50% 0;
+    }
+
+    .voice-mode-button {
+      transition: none;
+    }
+  }
+
   .assistant-card {
     min-height: calc(100vh - 100px);
     padding: 20px 16px;
@@ -313,6 +391,12 @@
 
   .assistant-heading {
     gap: 11px;
+  }
+
+  .voice-mode-panel {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .assistant-mark {

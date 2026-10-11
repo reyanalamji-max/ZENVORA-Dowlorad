@@ -704,21 +704,79 @@ a:hover {
   cursor: pointer;
 }
 
-.search-submit {
-  min-height: 34px;
-  padding: 0 16px;
-  color: #3c4043;
-  background: #f8f9fa;
-  border: 1px solid transparent;
-  border-radius: 5px;
+.ai-mode-button {
+  position: relative;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 15px;
+  color: #fff;
+  background: linear-gradient(120deg, #4a70e8, #7552d9 55%, #984fc7);
+  border: 0;
+  border-radius: 22px;
+  box-shadow: 0 5px 16px rgb(94 83 210 / 24%);
   font: inherit;
   font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
 }
 
-.search-submit:hover {
-  border-color: #dadce0;
-  box-shadow: 0 1px 1px rgb(0 0 0 / 10%);
+.ai-mode-label,
+.ai-mode-welcome {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.ai-mode-welcome {
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  padding: 7px 11px;
+  color: #fff;
+  background: linear-gradient(120deg, #4a70e8, #7552d9 55%, #984fc7);
+  border-radius: 16px;
+  box-shadow: 0 5px 18px rgb(91 76 206 / 24%);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(6px, -50%);
+  white-space: nowrap;
+}
+
+.ai-mode-button:hover {
+  filter: saturate(1.2) brightness(1.08);
+  box-shadow: 0 9px 24px rgb(91 76 206 / 36%);
+  transform: translateY(-2px) scale(1.025);
+}
+
+.ai-mode-button:hover .ai-mode-welcome,
+.ai-mode-button:focus-visible .ai-mode-welcome {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+.ai-mode-button:hover .ai-mode-label,
+.ai-mode-button:focus-visible .ai-mode-label {
+  opacity: .76;
+}
+
+.ai-mode-button:focus-visible {
+  outline: 3px solid rgb(116 93 224 / 38%);
+  outline-offset: 3px;
+}
+
+.ai-mode-spark {
+  font-size: 16px;
+}
+
+.ai-mode-arrow {
+  font-size: 16px;
+  transition: transform 180ms ease;
+}
+
+.ai-mode-button:hover .ai-mode-arrow {
+  transform: translateX(3px);
 }
 
 .shortcuts {
@@ -1107,7 +1165,7 @@ a:hover {
 
 .download-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -1190,6 +1248,17 @@ a:hover {
   transform: translateX(3px);
 }
 
+.platform-download-link.is-unavailable {
+  color: #94a2bf;
+  cursor: not-allowed;
+  opacity: .75;
+}
+
+.windows-download-link.is-unavailable {
+  cursor: not-allowed;
+  opacity: .65;
+}
+
 .download-trust {
   display: flex;
   align-items: flex-start;
@@ -1255,6 +1324,12 @@ a:hover {
 
   .download-card {
     min-height: 0;
+  }
+}
+
+@media (min-width: 801px) and (max-width: 1040px) {
+  .download-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1356,7 +1431,11 @@ a:hover {
 
   .download-card,
   .primary-action,
-  .platform-download-link span {
+  .platform-download-link span,
+  .ai-mode-button,
+  .ai-mode-arrow,
+  .ai-mode-label,
+  .ai-mode-welcome {
     transition: none;
   }
 }

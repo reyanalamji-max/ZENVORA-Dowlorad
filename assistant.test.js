@@ -43,10 +43,26 @@ test("AI page and chat endpoint serve the platform and proxy Gemini without expo
 
   const home = await fetch(baseUrl);
   assert.equal(home.status, 200);
-  assert.match(await home.text(), /Talk to ZENVORA AI/);
+  const homeHtml = await home.text();
+  assert.match(homeHtml, /id="ai-mode-button"[^>]*>[\s\S]*?AI Model/);
+  assert.match(homeHtml, /class="ai-mode-welcome"[^>]*>Welcome/);
+  assert.doesNotMatch(homeHtml, /class="search-submit"/);
+  const homeScript = await (await fetch(`${baseUrl}/app.js`)).text();
+  assert.match(homeScript, /\/assistant\?q=/);
+  assert.match(homeScript, /aiModeButton\.addEventListener/);
+  const homeStyles = await (await fetch(`${baseUrl}/styles.css`)).text();
+  assert.match(homeStyles, /\.ai-mode-button:hover/);
+  assert.match(homeStyles, /\.ai-mode-button:hover \.ai-mode-welcome/);
   const assistantPage = await fetch(`${baseUrl}/assistant`);
   assert.equal(assistantPage.status, 200);
-  assert.match(await assistantPage.text(), /Talk to ZENVORA AI/);
+  assert.match(await assistantPage.text(), /Start voice conversation/);
+  const assistantScript = await (await fetch(`${baseUrl}/assistant.js`)).text();
+  assert.match(assistantScript, /recognition\.continuous = false/);
+  assert.match(assistantScript, /startListeningAgain/);
+  assert.match(assistantScript, /speechSynthesis\.speak/);
+  assert.match(assistantScript, /\/api\/assistant\/status/);
+  const assistantStyles = await (await fetch(`${baseUrl}/assistant.css`)).text();
+  assert.match(assistantStyles, /assistant-rgb-flow/);
 
   const response = await fetch(`${baseUrl}/api/assistant`, {
     method: "POST",
@@ -93,11 +109,27 @@ test("AI chat requires same-origin requests and validates conversation turns", a
 test("AI chat reports a clear unavailable response when Gemini is not configured", async () => {
   const server = createApp({ dataDir });
   const baseUrl = await listen(server);
+  const statusResponse = await fetch(`${baseUrl}/api/assistant/status`);
+  assert.equal(statusResponse.status, 200);
+  assert.deepEqual(await statusResponse.json(), { configured: false });
+
   const response = await fetch(`${baseUrl}/api/assistant`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Origin: baseUrl },
     body: JSON.stringify({ messages: [{ role: "user", text: "Hello" }] })
   });
   assert.equal(response.status, 503);
-  assert.deepEqual(await response.json(), { error: "AI chat is temporarily unavailable." });
+  assert.deepEqual(await response.json(), {
+    error: "AI chat is not configured on this server. Add GEMINI_API_KEY in the Render environment settings, then redeploy."
+  });
+});
+
+test("AI status endpoint reports configured state without exposing the API key", async () => {
+  const server = createApp({ dataDir, geminiApiKey: "secret-test-key" });
+  const baseUrl = await listen(server);
+  const response = await fetch(`${baseUrl}/api/assistant/status`);
+  assert.equal(response.status, 200);
+  const result = await response.text();
+  assert.deepEqual(JSON.parse(result), { configured: true });
+  assert.doesNotMatch(result, /secret-test-key/);
 });

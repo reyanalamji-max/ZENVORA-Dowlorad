@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#101a35">
-    <meta name="description" content="Download ZENVORA Search for Windows, or install the web app on your phone.">
+    <meta name="description" content="Get ZENVORA Search on Windows, or install it from your browser on mobile and other devices.">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ZENVORA">
@@ -12,8 +12,8 @@
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="icon" type="image/svg+xml" href="/logo.svg">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
-    <link rel="stylesheet" href="/styles.css?v=phone-install">
-    <script src="/download.js?v=phone-install" defer></script>
+    <link rel="stylesheet" href="/styles.css?v=all-devices-install">
+    <script src="/download.js?v=all-devices-install" defer></script>
   </head>
   <body class="download-body">
     <header class="download-header">
@@ -29,17 +29,21 @@
         <div class="download-hero-copy">
           <span class="download-kicker"><span class="download-kicker-dot"></span> SEARCH, MADE YOURS</span>
           <h1 id="download-title">Your search.<br><span>Your space.</span></h1>
-          <p class="download-intro">Get ZENVORA Search on your Windows PC, or add it to your phone's home screen. Browse and search in your own ZENVORA tabs, all inside the app.</p>
+          <p class="download-intro">Install ZENVORA on Windows, or add it to your phone, Mac, Chromebook, or other device from its browser. The Windows app opens websites in their own ZENVORA tabs.</p>
           <div class="download-actions">
-            <a class="primary-action" id="windows-download" href="/download-app" download="ZENVORA-Search-Setup.exe" hidden>
+            <a class="primary-action windows-download-link" id="windows-download" href="/download-app" hidden>
               <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
-              <span><strong>Download for Windows</strong><small>64-bit desktop app · Requires internet</small></span>
+              <span><strong id="windows-download-title">Download for Windows</strong><small id="windows-download-hint">64-bit desktop app · Requires internet</small></span>
             </a>
-            <a class="primary-action phone-install-action" id="phone-install" href="https://zenvora-ttu9.onrender.com/" hidden>
+            <a class="primary-action phone-install-action" id="phone-install" href="/" hidden>
               <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
               <span><strong id="phone-install-label">Install ZENVORA on phone</strong><small id="phone-install-hint">Opens the official ZENVORA Search app</small></span>
             </a>
-            <a class="secondary-action" href="https://zenvora-ttu9.onrender.com/">Open ZENVORA Search</a>
+            <a class="primary-action universal-install-link" id="universal-install" href="/">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
+              <span><strong>Install or open on this device</strong><small id="universal-install-hint">Use your browser’s install option where available</small></span>
+            </a>
+            <a class="secondary-action" href="/">Open ZENVORA Search</a>
           </div>
           <p class="download-note" id="download-note" role="status" aria-live="polite">Windows 10/11 · 64-bit · Internet connection required</p>
         </div>
@@ -63,33 +67,40 @@
           <p>One familiar search experience across your screens.</p>
         </div>
         <div class="download-grid">
-          <article class="download-card download-card-featured">
+          <article class="download-card download-card-featured windows-platform-card">
             <span class="device-icon" aria-hidden="true">▣</span>
             <span class="device-badge">DESKTOP APP</span>
             <h3>Windows</h3>
             <p>Use a ZENVORA tab strip, address and search bar, and back/forward controls in one app window.</p>
-            <a class="platform-download-link" href="/download-app" download="ZENVORA-Search-Setup.exe">Download Windows app <span aria-hidden="true">→</span></a>
+            <a class="platform-download-link windows-download-link" href="/download-app">Download Windows app <span aria-hidden="true">→</span></a>
           </article>
           <article class="download-card">
             <span class="device-icon" aria-hidden="true">▯</span>
             <span class="device-badge">INSTALL FROM BROWSER</span>
             <h3>Android</h3>
             <p>Open ZENVORA in Chrome, tap the menu, then choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.</p>
-            <a class="platform-download-link" href="https://zenvora-ttu9.onrender.com/">Open &amp; install ZENVORA <span aria-hidden="true">→</span></a>
+            <a class="platform-download-link" href="/">Open &amp; install ZENVORA <span aria-hidden="true">→</span></a>
           </article>
           <article class="download-card">
             <span class="device-icon" aria-hidden="true">▯</span>
             <span class="device-badge">INSTALL FROM BROWSER</span>
             <h3>iPhone &amp; iPad</h3>
             <p>Open ZENVORA in Safari, tap <strong>Share</strong>, then choose <strong>Add to Home Screen</strong>.</p>
-            <a class="platform-download-link" href="https://zenvora-ttu9.onrender.com/">Open &amp; add to Home Screen <span aria-hidden="true">→</span></a>
+            <a class="platform-download-link" href="/">Open &amp; add to Home Screen <span aria-hidden="true">→</span></a>
+          </article>
+          <article class="download-card">
+            <span class="device-icon" aria-hidden="true">▱</span>
+            <span class="device-badge">INSTALL FROM BROWSER</span>
+            <h3>Mac, Chromebook &amp; other PCs</h3>
+            <p>Open ZENVORA in Chrome or Edge. Use the browser’s install icon or menu to add it as an app; otherwise use it directly online.</p>
+            <a class="platform-download-link" href="/">Open ZENVORA on this device <span aria-hidden="true">→</span></a>
           </article>
         </div>
       </section>
 
       <section class="download-trust" aria-label="About the download">
         <span class="trust-check" aria-hidden="true">✓</span>
-        <p><strong>Same ZENVORA Search.</strong> The Windows app connects to the official website, so search and other online features need an internet connection.</p>
+        <p><strong>Same ZENVORA Search on every device.</strong> The Windows app and browser-installed web app need an internet connection. Mobile and non-Windows devices use the browser version; separate native installers are not currently provided for iPhone, Mac, or Linux.</p>
       </section>
       <p class="download-note">Windows may show a security warning for unsigned or new installers. Only install ZENVORA from this official HTTPS website; never turn off security protections to install it.</p>
     </main>

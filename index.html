@@ -29,7 +29,7 @@
           <a class="page-nav-link active" href="/" aria-current="page">Search</a>
           <a class="page-nav-link" href="/apps">Apps</a>
           <a class="page-nav-link" href="/videos">Videos</a>
-          <a class="page-nav-link" href="/assistant">AI Chat</a>
+          <a class="page-nav-link" href="/assistant">AI Mode</a>
           <a class="page-nav-link" href="/download">Download</a>
           <a class="page-nav-link" id="account-link" href="/account">Sign in</a>
         </nav>
@@ -43,7 +43,12 @@
             <label class="sr-only" for="query">Search the web, saved websites, and videos</label>
             <span class="search-icon" aria-hidden="true"></span>
             <input id="query" name="q" type="search" maxlength="200" autocomplete="off" placeholder="Search the web and your saved sites" role="combobox" aria-autocomplete="list" aria-controls="search-suggestions" aria-expanded="false">
-            <button class="search-submit" type="submit" name="type" value="all">Search</button>
+            <button class="ai-mode-button" id="ai-mode-button" type="button" aria-label="Open ZENVORA AI">
+              <span class="ai-mode-spark" aria-hidden="true">✦</span>
+              <span class="ai-mode-label">AI Model</span>
+              <span class="ai-mode-welcome" aria-hidden="true">Welcome</span>
+              <span class="ai-mode-arrow" aria-hidden="true">→</span>
+            </button>
           </form>
           <ul class="search-suggestions" id="search-suggestions" role="listbox" aria-label="Saved website and video suggestions" hidden></ul>
         </div>

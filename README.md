@@ -2,6 +2,8 @@
 
 ZENVORA Search provides web search, saved websites, videos, account features, and a conversational AI page. The AI assistant uses the Gemini API when `GEMINI_API_KEY` is configured and supports typed chat plus browser speech input/output. The API key stays on the server and is never sent to the browser. The Windows download is an installer for a desktop app that opens the official ZENVORA Search website in an in-app browser with site favicons and separate tabs; web links that request a new window open as another tab. Downloads support byte ranges so compatible browsers can resume an interrupted installer transfer. On Android, open the official site in Chrome and use Install app. On iPhone/iPad, open it in Safari and choose Share → Add to Home Screen. These phone installs use the website as an installable web app; this project does not provide a native APK or App Store package.
 
+AI Mode includes an optional hands-free, turn-by-turn voice conversation using browser speech recognition and speech synthesis; this is not a full-duplex telephone call. The Gemini API key must be set as the server-side `GEMINI_API_KEY` environment variable (for example, in Render's private environment settings); do not put it in browser code or commit it. `/api/assistant/status` reports whether AI is configured without returning the key.
+
 ## Run locally
 
 1. Install Node.js 20 or newer.
@@ -18,7 +20,7 @@ Run `npm run build` from the project root to install the desktop packaging depen
 
 Signing identifies the publisher and helps build download reputation, but does not guarantee that Windows SmartScreen or browser warnings disappear immediately. New or changed releases can still be warned about until their reputation is established. Do not disable or bypass those protections; publish releases consistently from the official HTTPS domain and submit suspected false positives to the relevant vendor.
 
-The desktop app uses Electron to open `https://zenvora-ttu9.onrender.com/` in a browser-style ZENVORA window with tabs, an address/search bar, and back/forward controls. HTTP and HTTPS links stay inside ZENVORA; links opened in a new window become another ZENVORA tab. Native operating-system and store protocols are blocked rather than launched in another app. It is not an offline copy of the search platform. The app installer is built for Windows x64; mobile devices use the install instructions on the website.
+The desktop app uses Electron to open `https://zenvora-dowlorad.onrender.com/` in a browser-style ZENVORA window with tabs, an address/search bar, and back/forward controls. HTTP and HTTPS links stay inside ZENVORA; links opened in a new window become another ZENVORA tab. Native operating-system and store protocols are blocked rather than launched in another app. It is not an offline copy of the search platform. The native desktop installer is built for Windows x64. On supported browsers, the PWA can be installed on other computers and Android; iPhone/iPad users can add it to their Home Screen from Safari. These browser installs need an internet connection and are not native APK/IPA packages.
 
 Run `node --test navigation.test.cjs` in `desktop-app` to verify app-internal tabs, site favicons, and native protocol blocking.
 

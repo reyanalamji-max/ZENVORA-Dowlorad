@@ -963,13 +963,20 @@ export function createApp({
       return;
     }
 
+    if (url.pathname === "/api/assistant/status" && request.method === "GET") {
+      sendJson(response, 200, { configured: Boolean(geminiApiKey) });
+      return;
+    }
+
     if (url.pathname === "/api/assistant" && request.method === "POST") {
       if (!sameOrigin(request)) {
         sendJson(response, 403, { error: "Request origin is not allowed." });
         return;
       }
       if (!geminiApiKey) {
-        sendJson(response, 503, { error: "AI chat is temporarily unavailable." });
+        sendJson(response, 503, {
+          error: "AI chat is not configured on this server. Add GEMINI_API_KEY in the Render environment settings, then redeploy."
+        });
         return;
       }
       if (!checkAuthRateLimit(request, "assistant", 20, 60 * 1000)) {

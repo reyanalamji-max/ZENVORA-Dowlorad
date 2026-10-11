@@ -5,7 +5,7 @@ ZENVORA uses a Trusted Web Activity (TWA) so the Android app opens the existing 
 ## Before generating the Android project
 
 1. Push the PWA changes to GitHub and wait for Render to deploy them.
-2. Confirm `https://zenvora-ttu9.onrender.com/manifest.webmanifest` returns HTTP 200 and contains the ZENVORA icons.
+2. Confirm `https://zenvora-dowlorad.onrender.com/manifest.webmanifest` returns HTTP 200 and contains the ZENVORA icons.
 3. Install Android Studio with the Android SDK and platform tools, and install a supported JDK. Bubblewrap can offer to install missing Android build tools on first use.
 4. From the repository root, run `npm run android:init`.
 5. In Bubblewrap's prompts, use application ID `com.zenvora.app`, app name `ZENVORA`, and the ZENVORA launcher icon. Create a signing key and store it outside Git; back it up securely. Never commit the keystore or passwords.
@@ -35,7 +35,7 @@ After the first signed build, obtain the **SHA-256 certificate fingerprint of th
 - `ANDROID_APP_ID` = `com.zenvora.app`
 - `ANDROID_SHA256_CERT_FINGERPRINTS` = the colon-separated SHA-256 fingerprint; comma-separate fingerprints if both a direct-distribution key and a Play app-signing key are needed.
 
-Redeploy Render, then verify `https://zenvora-ttu9.onrender.com/.well-known/assetlinks.json` returns the matching Android package and fingerprint. Until that association is configured, Chrome may open the app in a browser custom tab instead of a verified full-screen TWA.
+Redeploy Render, then verify `https://zenvora-dowlorad.onrender.com/.well-known/assetlinks.json` returns the matching Android package and fingerprint. Until that association is configured, Chrome may open the app in a browser custom tab instead of a verified full-screen TWA.
 
 ## Distribution and Play Store
 

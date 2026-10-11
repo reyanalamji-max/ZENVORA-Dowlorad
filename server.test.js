@@ -42,7 +42,7 @@ test("search results stay on the Zenvora site and use a local-only content polic
 
   const downloadPage = await fetch(`${baseUrl}/download`);
   assert.equal(downloadPage.status, 200);
-  assert.match(await downloadPage.text(), /Install ZENVORA directly on your device/);
+  assert.match(await downloadPage.text(), /Install or open on this device/);
   assert.equal((await fetch(`${baseUrl}/download.js`)).status, 200);
 
   const accountPage = await fetch(`${baseUrl}/account`);

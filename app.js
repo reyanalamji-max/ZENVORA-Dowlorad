@@ -2,8 +2,15 @@ const form = document.querySelector("#search-form");
 const input = document.querySelector("#query");
 const suggestionList = document.querySelector("#search-suggestions");
 const searchFeedback = document.querySelector("#search-feedback");
+const aiModeButton = document.querySelector("#ai-mode-button");
 let savedItems = [];
 let activeSuggestion = -1;
+
+aiModeButton.addEventListener("click", () => {
+  const query = input.value.trim();
+  const destination = query ? `/assistant?q=${encodeURIComponent(query)}` : "/assistant";
+  window.location.assign(destination);
+});
 
 function closeSuggestions() {
   suggestionList.hidden = true;

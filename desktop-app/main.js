@@ -2,7 +2,7 @@ const { app, BrowserWindow, WebContentsView, ipcMain, shell } = require("electro
 const path = require("node:path");
 const { getFaviconUrl, installInAppNavigation, isWebUrl } = require("./navigation.cjs");
 
-const START_URL = "https://zenvora-ttu9.onrender.com/";
+const START_URL = "https://zenvora-dowlorad.onrender.com/";
 const CHROME_HEIGHT = 112;
 
 let window;

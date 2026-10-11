@@ -95,7 +95,7 @@ document.querySelector("#reload-button").addEventListener("click", () => {
   window.zenvoraBrowser.reload();
 });
 document.querySelector("#home-button").addEventListener("click", () => {
-  window.zenvoraBrowser.navigate("https://zenvora-ttu9.onrender.com/");
+  window.zenvoraBrowser.navigate("https://zenvora-dowlorad.onrender.com/");
 });
 document.querySelector("#more-button").addEventListener("click", () => {
   window.zenvoraBrowser.newTab();
