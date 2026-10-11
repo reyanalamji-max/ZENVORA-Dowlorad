@@ -48,3 +48,21 @@ test("download-app serves a Windows installer attachment, not the raw app execut
   assert.match(response.headers.get("content-disposition"), /attachment; filename="ZENVORA-Search-Setup\.exe"/);
   assert.ok(Number(response.headers.get("content-length")) > 50_000_000, "installer should include the Electron runtime and application assets");
 });
+
+test("download-app reports a missing installer as an actionable service-unavailable response", async () => {
+  const unavailableServer = createApp({
+    dataDir,
+    installerPath: path.join(dataDir, "missing-installer.exe")
+  });
+  await new Promise((resolve) => unavailableServer.listen(0, "127.0.0.1", resolve));
+
+  try {
+    const response = await fetch(`http://127.0.0.1:${unavailableServer.address().port}/download-app`);
+    assert.equal(response.status, 503);
+    assert.deepEqual(await response.json(), {
+      error: "The Windows installer is not available. Set the Render build command to `npm run build` and redeploy."
+    });
+  } finally {
+    await new Promise((resolve, reject) => unavailableServer.close((error) => error ? reject(error) : resolve()));
+  }
+});

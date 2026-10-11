@@ -188,9 +188,17 @@ function sendJson(response, status, value, headers = {}) {
   });
 }
 
-async function sendInstaller(response, filename, headOnly) {
-  const installerPath = path.join(ROOT, filename);
-  const installerStats = await stat(installerPath);
+async function sendInstaller(response, installerPath, headOnly) {
+  let installerStats;
+  try {
+    installerStats = await stat(installerPath);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+    sendJson(response, 503, {
+      error: "The Windows installer is not available. Set the Render build command to `npm run build` and redeploy."
+    });
+    return;
+  }
   response.writeHead(200, {
     "Content-Type": "application/octet-stream",
     "Content-Length": installerStats.size,
@@ -329,6 +337,7 @@ async function persistUsers(dataDir, users) {
 export function createApp({
   adminPassword = randomBytes(32).toString("hex"),
   dataDir = path.join(ROOT, "data"),
+  installerPath = path.join(ROOT, STATIC_FILES["/download-app"][0]),
   serperApiKey,
   fetchImpl = fetch,
   androidAppId,
@@ -903,8 +912,7 @@ export function createApp({
     }
 
     if (url.pathname === "/download-app" && (request.method === "GET" || request.method === "HEAD")) {
-      const [filename] = STATIC_FILES[url.pathname];
-      await sendInstaller(response, filename, request.method === "HEAD");
+      await sendInstaller(response, installerPath, request.method === "HEAD");
       return;
     }
 
