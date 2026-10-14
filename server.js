@@ -24,6 +24,13 @@ const DEFAULT_SETTINGS = {
 };
 const STATIC_FILES = {
   "/": ["index.html", "text/html; charset=utf-8"],
+  "/about": ["about.html", "text/html; charset=utf-8"],
+  "/contact": ["contact.html", "text/html; charset=utf-8"],
+  "/privacy": ["privacy.html", "text/html; charset=utf-8"],
+  "/terms": ["terms.html", "text/html; charset=utf-8"],
+  "/disclaimer": ["disclaimer.html", "text/html; charset=utf-8"],
+  "/robots.txt": ["robots.txt", "text/plain; charset=utf-8"],
+  "/sitemap.xml": ["sitemap.xml", "application/xml; charset=utf-8"],
   "/search": ["search.html", "text/html; charset=utf-8"],
   "/apps": ["apps.html", "text/html; charset=utf-8"],
   "/videos": ["videos.html", "text/html; charset=utf-8"],
@@ -50,6 +57,16 @@ const STATIC_FILES = {
   "/styles.css": ["styles.css", "text/css; charset=utf-8"],
   "/download.js": ["download.js", "text/javascript; charset=utf-8"]
 };
+const NOINDEX_PATHS = new Set([
+  "/search",
+  "/apps",
+  "/videos",
+  "/account",
+  "/open",
+  "/assistant",
+  "/offline.html",
+  "/download-app"
+]);
 
 async function loadDotEnv() {
   let contents;
@@ -213,7 +230,7 @@ async function sendInstaller(request, response, installerPath, headOnly) {
     console.error("Windows installer is missing:", error);
     sendJson(response, 503, {
       error: "The Windows installer is temporarily unavailable. Please try again later."
-    });
+    }, { "X-Robots-Tag": "noindex, nofollow, noarchive" });
     return;
   }
   const rangeHeader = request.headers.range;
@@ -242,7 +259,8 @@ async function sendInstaller(request, response, installerPath, headOnly) {
           "Cache-Control": "no-store",
           "X-Content-Type-Options": "nosniff",
           "Referrer-Policy": "no-referrer",
-          "X-Frame-Options": "DENY"
+          "X-Frame-Options": "DENY",
+          "X-Robots-Tag": "noindex, nofollow, noarchive"
         });
         response.end();
         return;
@@ -261,6 +279,7 @@ async function sendInstaller(request, response, installerPath, headOnly) {
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
     "X-Frame-Options": "DENY",
+    "X-Robots-Tag": "noindex, nofollow, noarchive",
     "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://www.google.com; connect-src 'self'; frame-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
   });
   if (headOnly) {
@@ -1072,7 +1091,8 @@ export function createApp({
       const headers = {
         ...(url.pathname === "/service-worker.js" ? { "Cache-Control": "no-cache", "Service-Worker-Allowed": "/" } : {}),
         ...(url.pathname === "/admin.js" ? { "Cache-Control": "no-store" } : {}),
-        ...(url.pathname === "/download-app" ? { "Content-Disposition": "attachment; filename=\"ZENVORA-Search-Setup.exe\"" } : {})
+        ...(url.pathname === "/download-app" ? { "Content-Disposition": "attachment; filename=\"ZENVORA-Search-Setup.exe\"" } : {}),
+        ...(NOINDEX_PATHS.has(url.pathname) ? { "X-Robots-Tag": "noindex, nofollow, noarchive" } : {})
       };
       send(response, 200, request.method === "HEAD" ? "" : body, contentType, headers);
       return;
@@ -1081,7 +1101,9 @@ export function createApp({
       sendJson(response, 404, { error: "API endpoint not found." });
       return;
     }
-    send(response, 404, "Page not found.");
+    send(response, 404, "Page not found.", "text/plain; charset=utf-8", {
+      "X-Robots-Tag": "noindex, nofollow, noarchive"
+    });
   }
 
   const server = createHttpServer((request, response) => {

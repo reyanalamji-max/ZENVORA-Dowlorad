@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#2359d1">
+    <meta name="robots" content="noindex, nofollow, noarchive">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ZENVORA">
@@ -33,14 +34,17 @@
       <header class="video-page-heading">
         <p class="eyebrow">YOUR LIBRARY</p>
         <h1 id="video-heading">Videos</h1>
-        <p class="muted">A collection of videos picked by you.</p>
+        <p class="muted">A list of video links configured by the site owner.</p>
+        <p class="muted">This shelf shows video links configured by the site owner. ZENVORA links to third-party video sites; it does not host or verify the videos.</p>
       </header>
       <p class="video-message" id="video-message" role="status" aria-live="polite">Loading videos…</p>
       <section class="video-grid" id="video-grid" aria-label="Video library"></section>
     </main>
     <footer class="footer">
       <span id="video-footer">Your video library</span>
-      <a href="/">Back to search</a>
+      <nav class="footer-links" aria-label="About ZENVORA">
+        <a href="/">Search</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/disclaimer">Disclaimer</a>
+      </nav>
     </footer>
   </body>
 </html>

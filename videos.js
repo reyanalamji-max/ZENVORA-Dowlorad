@@ -41,7 +41,9 @@ fetch("/api/settings")
     document.querySelector("#video-footer").textContent = `${settings.siteName} video library`;
     document.documentElement.style.setProperty("--accent", settings.accentColor);
     grid.replaceChildren(...settings.videos.map(createVideoCard));
-    message.textContent = settings.videos.length ? "" : "No videos here yet.";
+    message.textContent = settings.videos.length
+      ? ""
+      : "No videos have been added to this library yet. Browse the curated starting points on the ZENVORA home page or use Search to find public web results.";
   })
   .catch((error) => {
     message.textContent = error.message;

@@ -27,3 +27,9 @@ Run `node --test navigation.test.cjs` in `desktop-app` to verify app-internal ta
 ## Deploy
 
 In Render's service settings, set the **Build Command** to `npm run build` and the **Start Command** to `npm start`. The build installs the desktop packaging tools (including dev dependencies) and creates `desktop-app/dist/ZENVORA Search Setup 1.0.0.exe`, which `/download-app` serves. Redeploy after changing the build command. To publish a signed release instead, configure the build environment with the signing secrets and set the Render build command to `npm install --include=dev --prefix desktop-app && npm run package:release --prefix desktop-app`. Never commit the certificate or its password, and only publish an installer that has been tested on a Windows device.
+
+## Public content, privacy, and indexing
+
+The home page includes server-rendered descriptions and curated external starting points as well as the search interface. The public trust pages are `/about`, `/contact`, `/privacy`, `/terms`, and `/disclaimer`. `/robots.txt` and `/sitemap.xml` are served by the app. Account, search, AI, video-library, Google-app launcher, and outbound-link utility screens are marked not for indexing; they remain available to visitors. Search queries are not intentionally stored by the application. Account names, salted password hashes, and saved website links are stored server-side; see `/privacy` for details and third-party processing.
+
+The existing AdSense account declaration is retained once in the home page. The current application does not load an AdSense ad-serving script or place ads. Adding publisher content and trust information does not guarantee AdSense approval; review all live screens and follow Google’s current program policies before requesting another review.

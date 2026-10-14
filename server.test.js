@@ -30,6 +30,30 @@ test("search results stay on the Zenvora site and use a local-only content polic
   assert.doesNotMatch(homepage.headers.get("content-security-policy"), /frame-src[^;]*https?:/);
   assert.match(homepage.headers.get("content-security-policy"), /form-action 'self'/);
   assert.doesNotMatch(homepage.headers.get("content-security-policy"), /duckduckgo|openstreetmap/i);
+  const homepageHtml = await homepage.text();
+  assert.match(homepageHtml, /Find a useful place to start/);
+  assert.match(homepageHtml, /Research and learn/);
+  assert.match(homepageHtml, /How to search with ZENVORA/);
+  assert.match(homepageHtml, /rel="canonical" href="https:\/\/zenvora-dowlorad\.onrender\.com\/"/);
+  assert.equal((homepageHtml.match(/name="google-adsense-account"/g) ?? []).length, 1);
+
+  for (const route of ["/about", "/contact", "/privacy", "/terms", "/disclaimer"]) {
+    const response = await fetch(`${baseUrl}${route}`);
+    assert.equal(response.status, 200, `${route} should be available`);
+    assert.match(response.headers.get("content-type"), /text\/html/);
+    const html = await response.text();
+    assert.match(html, /<h1/);
+    assert.match(html, /<link rel="canonical"/);
+    assert.match(html, /href="\/privacy"/);
+  }
+
+  const robots = await fetch(`${baseUrl}/robots.txt`);
+  assert.equal(robots.status, 200);
+  assert.match(await robots.text(), /Sitemap: https:\/\/zenvora-dowlorad\.onrender\.com\/sitemap\.xml/);
+  const sitemap = await fetch(`${baseUrl}/sitemap.xml`);
+  assert.equal(sitemap.status, 200);
+  assert.match(sitemap.headers.get("content-type"), /application\/xml/);
+  assert.match(await sitemap.text(), /https:\/\/zenvora-dowlorad\.onrender\.com\/privacy/);
 
   const initialSettingsResponse = await fetch(`${baseUrl}/api/settings`);
   const initialSettings = await initialSettingsResponse.json();
@@ -38,6 +62,7 @@ test("search results stay on the Zenvora site and use a local-only content polic
   const searchPage = await fetch(`${baseUrl}/search?q=hello`);
   assert.equal(searchPage.status, 200);
   assert.match(searchPage.headers.get("content-type"), /text\/html/);
+  assert.match(searchPage.headers.get("x-robots-tag"), /noindex/);
   assert.match(await searchPage.text(), /Zenvora search results/);
 
   const downloadPage = await fetch(`${baseUrl}/download`);
@@ -47,6 +72,7 @@ test("search results stay on the Zenvora site and use a local-only content polic
 
   const accountPage = await fetch(`${baseUrl}/account`);
   assert.equal(accountPage.status, 200);
+  assert.match(accountPage.headers.get("x-robots-tag"), /noindex/);
   assert.match(await accountPage.text(), /Create an account/);
   assert.equal((await fetch(`${baseUrl}/account.js`)).status, 200);
   for (const page of ["/", "/search?q=hello", "/apps", "/videos"]) {
@@ -69,6 +95,10 @@ test("search results stay on the Zenvora site and use a local-only content polic
   const searchResponse = await fetch(`${baseUrl}/api/search?q=hello&type=all`);
   assert.equal(searchResponse.status, 200);
   assert.deepEqual((await searchResponse.json()).results, []);
+
+  const missingPage = await fetch(`${baseUrl}/not-a-real-page`);
+  assert.equal(missingPage.status, 404);
+  assert.match(missingPage.headers.get("x-robots-tag"), /noindex/);
 });
 
 test("admin settings require owner authentication and persist updates", async () => {

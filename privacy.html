@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#2359d1">
+    <meta name="description" content="Read how ZENVORA handles account details, saved websites, searches, optional AI messages, browser storage, and third-party services.">
+    <link rel="canonical" href="https://zenvora-dowlorad.onrender.com/privacy">
+    <title>Privacy Policy · ZENVORA</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body class="editorial-body">
+    <header class="editorial-header">
+      <a class="brand-lockup editorial-brand" href="/" aria-label="ZENVORA home"><img class="brand-mark" src="/logo.svg" alt=""><span>ZENVORA</span></a>
+      <nav aria-label="Main navigation"><a href="/">Search</a><a href="/apps">Google apps</a><a href="/download">Download</a></nav>
+    </header>
+    <main class="editorial-page">
+      <p class="home-eyebrow">YOUR INFORMATION</p>
+      <h1>Privacy Policy</h1>
+      <p class="editorial-lead">This policy describes information handled by the ZENVORA application as currently implemented. Hosting, search, AI, browser, and linked-site providers may have their own practices.</p>
+      <section class="editorial-section">
+        <h2>Information you provide</h2>
+        <ul>
+          <li><strong>Account details:</strong> if you register, ZENVORA stores your username, account creation time, and a salted password hash. The original password is not stored by the application.</li>
+          <li><strong>Saved websites:</strong> website names and URLs you save are stored with your account. They are available to your account and the site administrator. You can remove individual saved websites from your account page.</li>
+          <li><strong>Search terms:</strong> the app processes your search request to return matches but does not intentionally save a search-history record. If public web search is enabled, the query is sent to the external search provider to retrieve results.</li>
+          <li><strong>AI messages:</strong> when the optional AI service is configured, messages in a chat are sent to Google’s Gemini service to generate a response. ZENVORA keeps the current conversation in the browser page’s memory and does not save it to the account database.</li>
+        </ul>
+      </section>
+      <section class="editorial-section">
+        <h2>Storage, sessions, and device features</h2>
+        <p>Account records are stored by the application in its server-side data store. Account and administrator sessions use an HttpOnly, SameSite cookie; sessions are held in server memory and expire after eight hours. The application’s current account interface does not provide an account-deletion control. Do not register if you are unwilling to have the account data described above stored.</p>
+        <p>The website registers a service worker that caches selected static files for app installation and offline handling. Application code does not intentionally store search history in browser storage. Voice input and spoken AI replies use browser speech features; speech recognition may be processed by your browser or its provider, under that provider’s policies.</p>
+      </section>
+      <section class="editorial-section">
+        <h2>Third parties and technical requests</h2>
+        <p>When configured, public web search queries are sent to Serper. Optional AI messages are sent to Google Gemini. Search result pages request favicon images from Google’s favicon service, which receives the requested destination domain and normal request metadata. Clicking an external link takes you to that independent service, which may receive your request and use its own cookies or tracking.</p>
+        <p>The site is hosted by Render. The hosting provider may process connection details and operational logs as part of providing the service. ZENVORA’s application code does not intentionally record search terms in server logs, but hosting-level logging is governed by the host’s policies.</p>
+        <p>The current application source does not load an AdSense ad-serving script. If advertising or other third-party features are added, this policy should be updated to describe the resulting data handling before those features are enabled.</p>
+      </section>
+      <section class="editorial-section">
+        <h2>Retention and choices</h2>
+        <p>Account records and saved website links remain in server storage until removed by you or the site administrator. You can remove saved links from your account page, but account deletion is not currently available through the site. Browser session cookies expire after eight hours; server sessions are also memory-based and may end when the server restarts.</p>
+        <p>For general project feedback, use the public issue tracker linked on our <a href="/contact">Contact page</a>; do not post passwords, private saved links, or other sensitive information. This website does not provide a configured private account-deletion request channel.</p>
+      </section>
+      <section class="editorial-section">
+        <h2>Changes to this policy</h2>
+        <p>This policy may change when application features or providers change. The updated date below identifies the latest published version.</p>
+      </section>
+      <p class="editorial-updated">Last updated: October 14, 2026</p>
+    </main>
+    <footer class="editorial-footer">
+      <a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy" aria-current="page">Privacy</a><a href="/terms">Terms</a><a href="/disclaimer">Disclaimer</a>
+    </footer>
+  </body>
+</html>

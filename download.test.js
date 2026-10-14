@@ -52,6 +52,7 @@ test("download-app serves a Windows installer attachment, not the raw app execut
   const response = await fetch(`${baseUrl}/download-app`, { method: "HEAD" });
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type"), /application\/octet-stream/);
+  assert.match(response.headers.get("x-robots-tag"), /noindex/);
   assert.match(response.headers.get("content-disposition"), /attachment; filename="ZENVORA-Search-Setup\.exe"/);
   assert.ok(Number(response.headers.get("content-length")) > 50_000_000, "installer should include the Electron runtime and application assets");
 });
