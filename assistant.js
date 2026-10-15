@@ -201,11 +201,17 @@ if (SpeechRecognition) {
     form.requestSubmit();
   };
   recognition.onerror = (event) => {
-    statusElement.textContent = event.error === "not-allowed"
-      ? "Allow microphone access in your browser to use voice chat."
-      : "Voice input could not be started. You can type your message instead.";
+    const errorMessages = {
+      "not-allowed": "Microphone access was denied. Allow microphone access for ZENVORA in your browser or Windows privacy settings, then try again.",
+      "service-not-allowed": "The speech recognition service is unavailable. Check your internet connection and try again.",
+      "audio-capture": "No microphone was detected. Connect or enable a microphone, then try again.",
+      network: "Voice recognition could not connect. Check your internet connection and try again.",
+      "no-speech": "No speech was detected. Check your microphone and try again."
+    };
+    statusElement.textContent = errorMessages[event.error]
+      || "Voice input could not start. Check your microphone and internet connection, or type your message instead.";
     microphoneButton.setAttribute("aria-pressed", "false");
-    if (event.error === "not-allowed" || event.error === "service-not-allowed") stopVoiceMode();
+    if (["not-allowed", "service-not-allowed", "audio-capture", "network"].includes(event.error)) stopVoiceMode();
   };
   recognition.onend = () => {
     microphoneButton.setAttribute("aria-pressed", "false");

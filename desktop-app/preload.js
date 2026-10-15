@@ -30,5 +30,15 @@ contextBridge.exposeInMainWorld("zenvoraBrowser", {
       if (registered) ipcRenderer.removeListener(...registered);
       listeners.delete(callback);
     };
+  },
+  onFocusAddress: (callback) => {
+    const listener = () => callback();
+    ipcRenderer.on("browser:focus-address", listener);
+    listeners.set(callback, ["browser:focus-address", listener]);
+    return () => {
+      const registered = listeners.get(callback);
+      if (registered) ipcRenderer.removeListener(...registered);
+      listeners.delete(callback);
+    };
   }
 });

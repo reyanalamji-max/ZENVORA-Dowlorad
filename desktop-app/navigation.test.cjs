@@ -1,6 +1,12 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
-const { getFaviconUrl, installInAppNavigation, isWebUrl } = require("./navigation.cjs");
+const {
+  canGrantMicrophonePermission,
+  getBrowserShortcut,
+  getFaviconUrl,
+  installInAppNavigation,
+  isWebUrl
+} = require("./navigation.cjs");
 
 test("tabs use a site's web favicon and safely fall back to its origin icon", () => {
   assert.equal(
@@ -61,4 +67,34 @@ test("native app stores and unsafe protocols are blocked, never launched externa
   }
   popupHandler({ url: "market://details?id=com.zenvora" });
   assert.equal(openedTabs, 0);
+});
+
+test("microphone permission is limited to audio from the trusted ZENVORA tab", () => {
+  const trustedPage = { getURL: () => "https://zenvora-dowlorad.onrender.com/assistant" };
+  const trustedOrigin = "https://zenvora-dowlorad.onrender.com";
+  const audioRequest = { mediaTypes: ["audio"], isMainFrame: true };
+
+  assert.equal(canGrantMicrophonePermission(trustedPage, "media", audioRequest, trustedOrigin, trustedOrigin), true);
+  assert.equal(canGrantMicrophonePermission(trustedPage, "media", { mediaTypes: ["audio", "video"] }, trustedOrigin, trustedOrigin), false);
+  assert.equal(canGrantMicrophonePermission(trustedPage, "media", audioRequest, "https://evil.example", trustedOrigin), false);
+  assert.equal(canGrantMicrophonePermission(trustedPage, "media", { ...audioRequest, isMainFrame: false }, trustedOrigin, trustedOrigin), false);
+  assert.equal(canGrantMicrophonePermission(trustedPage, "geolocation", audioRequest, trustedOrigin, trustedOrigin), false);
+});
+
+test("browser shortcuts support tab creation, closing, switching, and address focus", () => {
+  const shortcut = (key, options = {}) => getBrowserShortcut({
+    type: "keyDown",
+    key,
+    control: true,
+    ...options
+  }, "win32");
+
+  assert.deepEqual(shortcut("t"), { action: "new-tab" });
+  assert.deepEqual(shortcut("w"), { action: "close-tab" });
+  assert.deepEqual(shortcut("l"), { action: "focus-address" });
+  assert.deepEqual(shortcut("Tab"), { action: "cycle-tab", direction: 1 });
+  assert.deepEqual(shortcut("Tab", { shift: true }), { action: "cycle-tab", direction: -1 });
+  assert.deepEqual(shortcut("3"), { action: "select-tab", index: 3 });
+  assert.equal(getBrowserShortcut({ type: "keyDown", key: "t", meta: true }, "win32"), null);
+  assert.deepEqual(getBrowserShortcut({ type: "keyDown", key: "t", meta: true }, "darwin"), { action: "new-tab" });
 });

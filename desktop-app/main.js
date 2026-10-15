@@ -1,6 +1,12 @@
-const { app, BrowserWindow, WebContentsView, ipcMain, shell } = require("electron");
+const { app, BrowserWindow, WebContentsView, dialog, ipcMain, session } = require("electron");
 const path = require("node:path");
-const { getFaviconUrl, installInAppNavigation, isWebUrl } = require("./navigation.cjs");
+const {
+  canGrantMicrophonePermission,
+  getBrowserShortcut,
+  getFaviconUrl,
+  installInAppNavigation,
+  isWebUrl
+} = require("./navigation.cjs");
 
 const START_URL = "https://zenvora-dowlorad.onrender.com/";
 const CHROME_HEIGHT = 112;
@@ -108,6 +114,7 @@ function createTab(address = START_URL, shouldFocus = true) {
   const tab = { id: tabId, title: "New tab", view, favicon: getFaviconUrl([], address) };
   tabs.set(tabId, tab);
   installInAppNavigation(view.webContents, (url) => createTab(url, true));
+  installBrowserKeyboardShortcuts(view.webContents);
 
   view.webContents.on("page-title-updated", (_event, title) => {
     tab.title = title || new URL(view.webContents.getURL() || START_URL).hostname;
@@ -174,6 +181,40 @@ function closeTab(tabId) {
   } else {
     sendBrowserState();
   }
+}
+
+function installBrowserKeyboardShortcuts(webContents) {
+  webContents.on("before-input-event", (event, input) => {
+    const shortcut = getBrowserShortcut(input, process.platform);
+    if (!shortcut) return;
+
+    const currentTab = getTab(activeTabId);
+    if (!currentTab) return;
+
+    if (shortcut.action === "new-tab") {
+      event.preventDefault();
+      createTab(START_URL, true);
+    } else if (shortcut.action === "close-tab") {
+      event.preventDefault();
+      closeTab(currentTab.id);
+    } else if (shortcut.action === "focus-address") {
+      event.preventDefault();
+      window.webContents.send("browser:focus-address");
+    } else if (shortcut.action === "cycle-tab") {
+      event.preventDefault();
+      const openTabs = [...tabs.values()];
+      const currentIndex = openTabs.findIndex((tab) => tab.id === activeTabId);
+      if (currentIndex !== -1 && openTabs.length > 1) {
+        const nextIndex = (currentIndex + shortcut.direction + openTabs.length) % openTabs.length;
+        selectTab(openTabs[nextIndex].id);
+      }
+    } else if (shortcut.action === "select-tab") {
+      event.preventDefault();
+      const openTabs = [...tabs.values()];
+      const targetIndex = shortcut.index === 9 ? openTabs.length - 1 : shortcut.index - 1;
+      if (openTabs[targetIndex]) selectTab(openTabs[targetIndex].id);
+    }
+  });
 }
 
 function getSenderTab(event) {
@@ -251,6 +292,7 @@ function createWindow() {
     }
   });
   const currentWindow = window;
+  installBrowserKeyboardShortcuts(window.webContents);
   window.on("resize", updateViewBounds);
   window.on("closed", () => {
     if (window === currentWindow) {
@@ -268,6 +310,48 @@ function createWindow() {
 
 app.whenReady().then(() => {
   registerIpcHandlers();
+  const trustedOrigin = new URL(START_URL).origin;
+  let microphoneGranted = false;
+  const isTrustedTab = (webContents) => [...tabs.values()]
+    .some((tab) => tab.id === activeTabId && tab.view.webContents === webContents);
+  const allowAudio = (webContents, permission, details, requestingOrigin) =>
+    isTrustedTab(webContents)
+    && canGrantMicrophonePermission(webContents, permission, details, requestingOrigin, trustedOrigin);
+  const defaultSession = session.defaultSession;
+  defaultSession.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) =>
+    microphoneGranted && allowAudio(webContents, permission, details, requestingOrigin));
+  defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
+    const trustedAudioRequest = allowAudio(
+      webContents,
+      permission,
+      details,
+      details.securityOrigin || details.requestingUrl
+    );
+    if (!trustedAudioRequest || !window || window.isDestroyed()) {
+      callback(false);
+      return;
+    }
+    if (microphoneGranted) {
+      callback(true);
+      return;
+    }
+
+    dialog.showMessageBox(window, {
+      type: "question",
+      buttons: ["Allow", "Don't allow"],
+      defaultId: 1,
+      cancelId: 1,
+      title: "Microphone access",
+      message: "Allow ZENVORA AI to use your microphone?",
+      detail: "Your microphone is used only when you start voice chat. Speech is processed by the browser's speech recognition service."
+    }).then(({ response }) => {
+      microphoneGranted = response === 0;
+      callback(microphoneGranted);
+    }).catch((error) => {
+      console.error("Could not request microphone permission.", error);
+      callback(false);
+    });
+  });
   createWindow();
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

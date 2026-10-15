@@ -103,28 +103,14 @@ document.querySelector("#more-button").addEventListener("click", () => {
 document.querySelector("#ask-ai-button").addEventListener("click", () => {
   window.zenvoraBrowser.navigate("https://zenvora-dowlorad.onrender.com/assistant");
 });
+window.zenvoraBrowser.onFocusAddress(() => {
+  addressInput.focus();
+  addressInput.select();
+});
 addressForm.addEventListener("submit", (event) => {
   event.preventDefault();
   window.zenvoraBrowser.navigate(addressInput.value);
   addressInput.blur();
-});
-
-window.addEventListener("keydown", (event) => {
-  const isMac = navigator.platform.includes("Mac");
-  const shortcutPressed = isMac ? event.metaKey : event.ctrlKey;
-  if (!shortcutPressed) return;
-
-  if (event.key.toLowerCase() === "t") {
-    event.preventDefault();
-    window.zenvoraBrowser.newTab();
-  } else if (event.key.toLowerCase() === "w") {
-    event.preventDefault();
-    if (activeTabId) window.zenvoraBrowser.closeTab(activeTabId);
-  } else if (event.key.toLowerCase() === "l") {
-    event.preventDefault();
-    addressInput.focus();
-    addressInput.select();
-  }
 });
 
 window.zenvoraBrowser.ready();
