@@ -71,7 +71,7 @@ test("AI page and chat endpoint serve the platform and proxy Gemini without expo
   });
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { answer: "नमस्ते! मैं आपकी कैसे मदद करूँ?" });
-  assert.equal(providerUrl, "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent");
+  assert.equal(providerUrl, "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent");
   assert.equal(providerOptions.headers["x-goog-api-key"], "test-gemini-key");
   assert.equal(providerOptions.headers.Authorization, undefined);
   assert.deepEqual(JSON.parse(providerOptions.body).contents, [
@@ -106,8 +106,8 @@ test("AI chat requires same-origin requests and validates conversation turns", a
   assert.equal(invalidTurns.status, 400);
 });
 
-test("AI chat reports a clear unavailable response when Gemini is not configured", async () => {
-  const server = createApp({ dataDir });
+test("AI chat reports a clear unavailable response when Gemini is unset or still a placeholder", async () => {
+  const server = createApp({ dataDir, geminiApiKey: "replace-with-your-Gemini-API-key" });
   const baseUrl = await listen(server);
   const statusResponse = await fetch(`${baseUrl}/api/assistant/status`);
   assert.equal(statusResponse.status, 200);
@@ -122,6 +122,35 @@ test("AI chat reports a clear unavailable response when Gemini is not configured
   assert.deepEqual(await response.json(), {
     error: "AI chat is not configured on this server. Add GEMINI_API_KEY in the Render environment settings, then redeploy."
   });
+});
+
+test("AI chat explains Gemini access and quota failures without exposing provider details", async () => {
+  const cases = [
+    [400, /GEMINI_API_KEY is valid/],
+    [401, /GEMINI_API_KEY is valid/],
+    [403, /API key restrictions/],
+    [404, /model is unavailable/],
+    [429, /quota or rate limit/]
+  ];
+
+  for (const [status, expectedMessage] of cases) {
+    const server = createApp({
+      dataDir,
+      geminiApiKey: "test-gemini-key",
+      fetchImpl: async () => new Response("provider response details", { status })
+    });
+    const baseUrl = await listen(server);
+    const response = await fetch(`${baseUrl}/api/assistant`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: baseUrl },
+      body: JSON.stringify({ messages: [{ role: "user", text: "Hello" }] })
+    });
+
+    assert.equal(response.status, 502);
+    const result = await response.json();
+    assert.match(result.error, expectedMessage);
+    assert.doesNotMatch(result.error, /provider response details|test-gemini-key/);
+  }
 });
 
 test("AI status endpoint reports configured state without exposing the API key", async () => {

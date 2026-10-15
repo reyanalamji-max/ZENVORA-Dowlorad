@@ -14,7 +14,9 @@ const MAX_BODY_BYTES = 64 * 1024;
 const MAX_ACCOUNT_WEBSITES = 500;
 const MAX_ASSISTANT_MESSAGES = 12;
 const MAX_ASSISTANT_MESSAGE_LENGTH = 4000;
+const GEMINI_MODEL = "gemini-3-flash-preview";
 const scrypt = promisify(scryptCallback);
+const GEMINI_KEY_PLACEHOLDER = /^(?:replace[-_ ]with|your[-_ ]|placeholder\b|<)/i;
 const DEFAULT_SETTINGS = {
   siteName: "Zenvora",
   tagline: "Search the web with ease",
@@ -419,6 +421,10 @@ export function createApp({
   secureCookies = false,
   trustProxy = false
 } = {}) {
+  const normalizedGeminiApiKey = typeof geminiApiKey === "string" ? geminiApiKey.trim() : "";
+  const configuredGeminiApiKey = GEMINI_KEY_PLACEHOLDER.test(normalizedGeminiApiKey)
+    ? ""
+    : normalizedGeminiApiKey;
   const sessions = new Map();
   const accountSessions = new Map();
   const authAttempts = new Map();
@@ -983,7 +989,7 @@ export function createApp({
     }
 
     if (url.pathname === "/api/assistant/status" && request.method === "GET") {
-      sendJson(response, 200, { configured: Boolean(geminiApiKey) });
+      sendJson(response, 200, { configured: Boolean(configuredGeminiApiKey) });
       return;
     }
 
@@ -992,7 +998,7 @@ export function createApp({
         sendJson(response, 403, { error: "Request origin is not allowed." });
         return;
       }
-      if (!geminiApiKey) {
+      if (!configuredGeminiApiKey) {
         sendJson(response, 503, {
           error: "AI chat is not configured on this server. Add GEMINI_API_KEY in the Render environment settings, then redeploy."
         });
@@ -1029,12 +1035,12 @@ export function createApp({
       let providerResponse;
       try {
         providerResponse = await fetchImpl(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+          `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "x-goog-api-key": geminiApiKey
+              "x-goog-api-key": configuredGeminiApiKey
             },
             body: JSON.stringify({
               systemInstruction: {
@@ -1053,7 +1059,16 @@ export function createApp({
       }
       if (!providerResponse.ok) {
         console.error("Gemini assistant returned HTTP", providerResponse.status);
-        sendJson(response, 502, { error: "The AI service could not answer right now. Please try again." });
+        const providerError = providerResponse.status === 400 || providerResponse.status === 401
+          ? "Gemini rejected the API key or request. Check that GEMINI_API_KEY is valid and the Generative Language API is enabled."
+          : providerResponse.status === 403
+            ? "Gemini denied access. Check the API key restrictions, project access, and billing settings."
+            : providerResponse.status === 404
+              ? "The Gemini model is unavailable. Check that the configured model is enabled for this API key."
+              : providerResponse.status === 429
+                ? "The Gemini API quota or rate limit has been reached. Check your Google AI project quota and try again later."
+                : "The AI service could not answer right now. Please try again later.";
+        sendJson(response, 502, { error: providerError });
         return;
       }
       let providerData;

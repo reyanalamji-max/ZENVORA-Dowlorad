@@ -67,12 +67,20 @@
         </a>
         <p class="form-message search-feedback" id="search-feedback" role="status" aria-live="polite"></p>
       </section>
-      <div class="home-content">
-        <section class="home-intro" aria-labelledby="home-intro-title">
-          <p class="home-eyebrow">A CLEARER WAY TO EXPLORE</p>
-          <h1 id="home-intro-title">Find a useful place to start.</h1>
-          <p>ZENVORA brings public web search, your own saved website shortcuts, and a small hand-picked directory together in one place. Search is powered by a web search provider when enabled by the site owner; ZENVORA does not create or endorse the sites that appear in results.</p>
-        </section>
+      <details class="home-content" id="explore-content">
+        <summary class="home-content-toggle">
+          <span>
+            <strong>Explore useful websites and learn how ZENVORA works</strong>
+            <small>Open the guide and curated starting points</small>
+          </span>
+          <span class="home-content-toggle-icon" aria-hidden="true"></span>
+        </summary>
+        <div class="home-content-inner">
+          <section class="home-intro" aria-labelledby="home-intro-title">
+            <p class="home-eyebrow">A CLEARER WAY TO EXPLORE</p>
+            <h1 id="home-intro-title">Find a useful place to start.</h1>
+            <p>ZENVORA brings public web search, your own saved website shortcuts, and a small hand-picked directory together in one place. Search is powered by a web search provider when enabled by the site owner; ZENVORA does not create or endorse the sites that appear in results.</p>
+          </section>
 
         <section class="discovery-section" aria-labelledby="research-heading">
           <div class="discovery-section-heading">
@@ -177,7 +185,8 @@
           </ol>
           <p class="discovery-disclosure">ZENVORA is an independent project, not affiliated with the third-party services listed above. External destinations have their own operators, policies, and privacy practices. Review those terms before sharing information or creating an account on an external site.</p>
         </section>
-      </div>
+        </div>
+      </details>
     </main>
     <footer class="footer">
       <span>Make the web yours.</span>

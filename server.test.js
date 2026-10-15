@@ -32,6 +32,8 @@ test("search results stay on the Zenvora site and use a local-only content polic
   assert.doesNotMatch(homepage.headers.get("content-security-policy"), /duckduckgo|openstreetmap/i);
   const homepageHtml = await homepage.text();
   assert.match(homepageHtml, /Find a useful place to start/);
+  assert.match(homepageHtml, /<details class="home-content" id="explore-content">/);
+  assert.match(homepageHtml, /Explore useful websites and learn how ZENVORA works/);
   assert.match(homepageHtml, /Research and learn/);
   assert.match(homepageHtml, /How to search with ZENVORA/);
   assert.match(homepageHtml, /rel="canonical" href="https:\/\/zenvora-dowlorad\.onrender\.com\/"/);

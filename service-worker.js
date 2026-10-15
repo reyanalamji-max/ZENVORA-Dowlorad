@@ -1,4 +1,4 @@
-const CACHE_NAME = "zenvora-static-v3";
+const CACHE_NAME = "zenvora-static-v4";
 const PRECACHE_URLS = [
   "/offline.html",
   "/manifest.webmanifest",
