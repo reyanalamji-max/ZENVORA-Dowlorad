@@ -244,6 +244,39 @@ button {
   color: #7f8d91;
 }
 
+.ask-ai-toolbar-button {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  padding: 0 14px;
+  color: #fff;
+  background: linear-gradient(120deg, #4169e1, #7956d6);
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 3px 10px rgb(91 76 206 / 20%);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  transition: box-shadow 150ms ease, transform 150ms ease;
+}
+
+.ask-ai-toolbar-button:hover {
+  box-shadow: 0 5px 15px rgb(91 76 206 / 30%);
+  transform: translateY(-1px);
+}
+
+.ask-ai-toolbar-button:focus-visible {
+  outline: 3px solid rgb(116 93 224 / 38%);
+  outline-offset: 2px;
+}
+
+.ask-ai-toolbar-button span {
+  font-size: 14px;
+}
+
 .address-go {
   width: 27px;
   height: 27px;

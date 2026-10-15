@@ -2,15 +2,50 @@ const form = document.querySelector("#search-form");
 const input = document.querySelector("#query");
 const suggestionList = document.querySelector("#search-suggestions");
 const searchFeedback = document.querySelector("#search-feedback");
-const aiModeButton = document.querySelector("#ai-mode-button");
+const appsLauncherButton = document.querySelector("#apps-launcher-button");
+const appsLauncher = document.querySelector("#apps-launcher");
+const appsLauncherClose = document.querySelector("#apps-launcher-close");
+const aiWelcomePopover = document.querySelector("#ai-welcome-popover");
+const aiWelcomeClose = document.querySelector("#ai-welcome-close");
 let savedItems = [];
 let activeSuggestion = -1;
 
-aiModeButton.addEventListener("click", () => {
-  const query = input.value.trim();
-  const destination = query ? `/assistant?q=${encodeURIComponent(query)}` : "/assistant";
-  window.location.assign(destination);
+function closeAppsLauncher() {
+  appsLauncher.hidden = true;
+  appsLauncherButton.setAttribute("aria-expanded", "false");
+}
+
+appsLauncherButton.addEventListener("click", () => {
+  const isOpen = !appsLauncher.hidden;
+  appsLauncher.hidden = isOpen;
+  appsLauncherButton.setAttribute("aria-expanded", String(!isOpen));
 });
+appsLauncherClose.addEventListener("click", closeAppsLauncher);
+document.addEventListener("pointerdown", (event) => {
+  if (!appsLauncher.hidden && !appsLauncher.contains(event.target) && !appsLauncherButton.contains(event.target)) {
+    closeAppsLauncher();
+  }
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !appsLauncher.hidden) {
+    closeAppsLauncher();
+    appsLauncherButton.focus();
+  }
+});
+aiWelcomeClose.addEventListener("click", () => {
+  aiWelcomePopover.hidden = true;
+});
+document.querySelectorAll('a[href="/assistant"]').forEach((link) => {
+  link.addEventListener("click", (event) => {
+    const query = input.value.trim();
+    if (!query) return;
+    event.preventDefault();
+    window.location.assign(`/assistant?q=${encodeURIComponent(query)}`);
+  });
+});
+window.setTimeout(() => {
+  aiWelcomePopover.hidden = false;
+}, 850);
 
 function closeSuggestions() {
   suggestionList.hidden = true;
@@ -178,9 +213,7 @@ Promise.all([fetch("/api/settings"), fetch("/api/account/me")])
     return [await settingsResponse.json(), await accountResponse.json()];
   })
   .then(([settings, account]) => {
-    document.title = `${settings.siteName} Search`;
-    document.querySelector("#brand-name").textContent = settings.siteName;
-    document.querySelector("#brand").setAttribute("aria-label", `${settings.siteName} home`);
+    document.title = `${settings.siteName} Search — Web Search, AI Chat & Popular Apps`;
     document.querySelector("#tagline").textContent = settings.tagline;
     document.documentElement.style.setProperty("--accent", settings.accentColor);
     savedItems = [

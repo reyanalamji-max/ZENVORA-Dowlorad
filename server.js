@@ -210,7 +210,7 @@ function send(response, status, body, contentType = "text/plain; charset=utf-8",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
     "X-Frame-Options": "DENY",
-    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://www.google.com; connect-src 'self'; frame-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://www.google.com https://*.gstatic.com; connect-src 'self'; frame-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
     ...headers
   });
   response.end(body);
@@ -282,7 +282,7 @@ async function sendInstaller(request, response, installerPath, headOnly) {
     "Referrer-Policy": "no-referrer",
     "X-Frame-Options": "DENY",
     "X-Robots-Tag": "noindex, nofollow, noarchive",
-    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://www.google.com; connect-src 'self'; frame-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://www.google.com https://*.gstatic.com; connect-src 'self'; frame-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
   });
   if (headOnly) {
     response.end();

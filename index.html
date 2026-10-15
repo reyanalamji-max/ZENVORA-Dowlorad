@@ -4,12 +4,20 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#2359d1">
-    <meta name="description" content="Search the public web, keep useful websites in a private account library, and explore a hand-picked collection of trusted online resources with ZENVORA.">
+    <meta name="description" content="Search the web, explore popular Google apps, and chat with ZENVORA AI by text or voice. Find useful websites, videos, and downloads in one place.">
     <link rel="canonical" href="https://zenvora-dowlorad.onrender.com/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="ZENVORA Search — Web Search, AI Chat &amp; Apps">
+    <meta property="og:description" content="Search the web, open popular apps, and talk with ZENVORA AI by text or voice.">
+    <meta property="og:url" content="https://zenvora-dowlorad.onrender.com/">
+    <meta property="og:image" content="https://zenvora-dowlorad.onrender.com/icons/icon-512.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="ZENVORA Search — Web Search, AI Chat &amp; Apps">
+    <meta name="twitter:description" content="Search the web, open popular apps, and talk with ZENVORA AI by text or voice.">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ZENVORA">
-    <title>Zenvora Search</title>
+    <title>ZENVORA Search — Web Search, AI Chat &amp; Popular Apps</title>
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="icon" type="image/svg+xml" href="/logo.svg">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
@@ -20,21 +28,62 @@
     <meta name="google-site-verification" content="W4E4E2nRW5FPjukAYoQtMYtYbz6JaJzpU58QNAPwVYM" />
   </head>
   <body>
+    <header class="home-header">
+      <a class="home-header-brand" href="/" aria-label="ZENVORA home">
+        <img src="/logo.svg" alt="" width="36" height="36">
+        <span>ZENVORA</span>
+      </a>
+      <nav class="page-nav" aria-label="Main navigation">
+        <a class="page-nav-link active" href="/" aria-current="page">Search</a>
+        <a class="page-nav-link" href="/apps">Apps</a>
+        <a class="page-nav-link" href="/videos">Videos</a>
+        <a class="page-nav-link" href="/download">Download</a>
+        <a class="page-nav-link" id="account-link" href="/account">Sign in</a>
+      </nav>
+      <div class="home-header-actions">
+        <button class="apps-launcher-button" id="apps-launcher-button" type="button" aria-label="Open popular apps" aria-haspopup="dialog" aria-expanded="false" aria-controls="apps-launcher">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="5" cy="5" r="1.7"/><circle cx="12" cy="5" r="1.7"/><circle cx="19" cy="5" r="1.7"/><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/><circle cx="5" cy="19" r="1.7"/><circle cx="12" cy="19" r="1.7"/><circle cx="19" cy="19" r="1.7"/></svg>
+        </button>
+        <a class="home-ask-button" href="/assistant"><span aria-hidden="true">✦</span> Ask to AI</a>
+      </div>
+      <section class="apps-launcher" id="apps-launcher" role="dialog" aria-labelledby="apps-launcher-title" hidden>
+        <div class="apps-launcher-heading">
+          <div>
+            <h2 id="apps-launcher-title">Your favorite apps</h2>
+            <p>Popular tools, all in one place</p>
+          </div>
+          <button class="apps-launcher-close" id="apps-launcher-close" type="button" aria-label="Close apps">×</button>
+        </div>
+        <div class="apps-launcher-grid">
+          <a class="launcher-app" href="https://www.google.com/" target="_blank" rel="noopener noreferrer"><img src="https://www.google.com/s2/favicons?domain=google.com&amp;sz=64" alt=""><span>Search</span></a>
+          <a class="launcher-app" href="https://mail.google.com/" target="_blank" rel="noopener noreferrer"><img src="https://www.google.com/s2/favicons?domain=gmail.com&amp;sz=64" alt=""><span>Gmail</span></a>
+          <a class="launcher-app" href="https://drive.google.com/" target="_blank" rel="noopener noreferrer"><img src="https://www.google.com/s2/favicons?domain=drive.google.com&amp;sz=64" alt=""><span>Drive</span></a>
+          <a class="launcher-app" href="https://docs.google.com/" target="_blank" rel="noopener noreferrer"><img src="https://www.google.com/s2/favicons?domain=docs.google.com&amp;sz=64" alt=""><span>Docs</span></a>
+          <a class="launcher-app" href="https://sheets.google.com/" target="_blank" rel="noopener noreferrer"><img src="https://www.google.com/s2/favicons?domain=sheets.google.com&amp;sz=64" alt=""><span>Sheets</span></a>
+          <a class="launcher-app" href="https://slides.google.com/" target="_blank" rel="noopener noreferrer"><img src="https://www.google.com/s2/favicons?domain=slides.google.com&amp;sz=64" alt=""><span>Slides</span></a>
+          <a class="launcher-app" href="https://calendar.google.com/" target="_blank" rel="noopener noreferrer"><img src="https://www.google.com/s2/favicons?domain=calendar.google.com&amp;sz=64" alt=""><span>Calendar</span></a>
+          <a class="launcher-app" href="https://maps.google.com/" target="_blank" rel="noopener noreferrer"><img src="https://www.google.com/s2/favicons?domain=maps.google.com&amp;sz=64" alt=""><span>Maps</span></a>
+          <a class="launcher-app" href="https://meet.google.com/" target="_blank" rel="noopener noreferrer"><img src="https://www.google.com/s2/favicons?domain=meet.google.com&amp;sz=64" alt=""><span>Meet</span></a>
+          <a class="launcher-app" href="https://photos.google.com/" target="_blank" rel="noopener noreferrer"><img src="https://www.google.com/s2/favicons?domain=photos.google.com&amp;sz=64" alt=""><span>Photos</span></a>
+          <a class="launcher-app" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer"><img src="https://www.google.com/s2/favicons?domain=youtube.com&amp;sz=64" alt=""><span>YouTube</span></a>
+          <a class="launcher-app" href="https://play.google.com/" target="_blank" rel="noopener noreferrer"><img src="https://www.google.com/s2/favicons?domain=play.google.com&amp;sz=64" alt=""><span>Play</span></a>
+          <a class="launcher-app" href="https://gemini.google.com/" target="_blank" rel="noopener noreferrer"><img src="https://www.google.com/s2/favicons?domain=gemini.google.com&amp;sz=64" alt=""><span>Gemini</span></a>
+          <a class="launcher-app" href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer"><img src="https://www.google.com/s2/favicons?domain=chatgpt.com&amp;sz=64" alt=""><span>ChatGPT</span></a>
+          <a class="launcher-app launcher-app-zenvora" href="/assistant"><img src="/logo.svg" alt=""><span>ZENVORA AI</span></a>
+        </div>
+        <p class="apps-launcher-note">Google, ChatGPT, and other services are operated by their respective owners.</p>
+      </section>
+    </header>
     <main class="home">
-      <section class="search-panel" aria-labelledby="brand">
-        <a class="brand" id="brand" href="/" aria-label="Zenvora home">
-          <img class="brand-mark" src="/logo.svg" alt="">
-          <span id="brand-name">Zenvora</span>
+      <section class="search-panel" aria-labelledby="home-hero-title">
+        <p class="home-eyebrow">A CLEARER WAY TO EXPLORE</p>
+        <h1 class="home-hero-title" id="home-hero-title">A smarter place to start.</h1>
+        <p class="tagline" id="tagline">Search the web, explore your favorite apps, or ask AI.</p>
+        <a class="home-ai-card" href="/assistant">
+          <span class="home-ai-mark" aria-hidden="true">✦</span>
+          <span class="home-ai-copy"><strong>Ask to AI</strong><small>Chat by text or voice with ZENVORA AI</small></span>
+          <span class="home-ai-action">Start a chat <span aria-hidden="true">→</span></span>
         </a>
-        <p class="tagline" id="tagline">Search the web with ease</p>
-        <nav class="page-nav" aria-label="Main navigation">
-          <a class="page-nav-link active" href="/" aria-current="page">Search</a>
-          <a class="page-nav-link" href="/apps">Apps</a>
-          <a class="page-nav-link" href="/videos">Videos</a>
-          <a class="page-nav-link" href="/assistant">AI Mode</a>
-          <a class="page-nav-link" href="/download">Download</a>
-          <a class="page-nav-link" id="account-link" href="/account">Sign in</a>
-        </nav>
         <nav class="search-tabs" aria-label="Search category">
           <button class="tab active" type="submit" form="search-form" name="type" value="all" aria-pressed="true">All</button>
           <button class="tab" type="submit" form="search-form" name="type" value="websites">Websites</button>
@@ -45,12 +94,7 @@
             <label class="sr-only" for="query">Search the web, saved websites, and videos</label>
             <span class="search-icon" aria-hidden="true"></span>
             <input id="query" name="q" type="search" maxlength="200" autocomplete="off" placeholder="Search the web and your saved sites" role="combobox" aria-autocomplete="list" aria-controls="search-suggestions" aria-expanded="false">
-            <button class="ai-mode-button" id="ai-mode-button" type="button" aria-label="Open ZENVORA AI">
-              <span class="ai-mode-spark" aria-hidden="true">✦</span>
-              <span class="ai-mode-label">AI Model</span>
-              <span class="ai-mode-welcome" aria-hidden="true">Welcome</span>
-              <span class="ai-mode-arrow" aria-hidden="true">→</span>
-            </button>
+            <button class="search-submit-button" type="submit" aria-label="Search">Search</button>
           </form>
           <ul class="search-suggestions" id="search-suggestions" role="listbox" aria-label="Saved website and video suggestions" hidden></ul>
         </div>
@@ -60,18 +104,13 @@
           <span>Find your videos</span>
         </div>
         <nav class="website-shortcuts" id="website-shortcuts" aria-label="Your websites" hidden></nav>
-        <a class="assistant-promo" href="/assistant">
-          <span class="assistant-promo-icon" aria-hidden="true">✦</span>
-          <span><strong>Talk to ZENVORA AI</strong><small>Ask by typing or speaking</small></span>
-          <span class="assistant-promo-arrow" aria-hidden="true">→</span>
-        </a>
         <p class="form-message search-feedback" id="search-feedback" role="status" aria-live="polite"></p>
       </section>
       <details class="home-content" id="explore-content">
         <summary class="home-content-toggle">
           <span>
-            <strong>Explore useful websites and learn how ZENVORA works</strong>
-            <small>Open the guide and curated starting points</small>
+            <strong>Explore useful apps, websites, and guides</strong>
+            <small>Open the directory and see what you can do with ZENVORA</small>
           </span>
           <span class="home-content-toggle-icon" aria-hidden="true"></span>
         </summary>
@@ -188,6 +227,15 @@
         </div>
       </details>
     </main>
+    <aside class="ai-welcome-popover" id="ai-welcome-popover" aria-labelledby="ai-welcome-title" hidden>
+      <div class="ai-petals" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <button class="ai-welcome-close" id="ai-welcome-close" type="button" aria-label="Dismiss AI welcome">×</button>
+      <span class="ai-welcome-icon" aria-hidden="true">✦</span>
+      <span class="ai-welcome-copy"><strong id="ai-welcome-title">A little help goes a long way</strong><small>Meet ZENVORA AI. Ask by typing or speaking.</small></span>
+      <a class="ai-welcome-action" href="/assistant">Ask to AI <span aria-hidden="true">→</span></a>
+    </aside>
     <footer class="footer">
       <span>Make the web yours.</span>
       <nav class="footer-links" aria-label="About ZENVORA">

@@ -100,6 +100,9 @@ document.querySelector("#home-button").addEventListener("click", () => {
 document.querySelector("#more-button").addEventListener("click", () => {
   window.zenvoraBrowser.newTab();
 });
+document.querySelector("#ask-ai-button").addEventListener("click", () => {
+  window.zenvoraBrowser.navigate("https://zenvora-dowlorad.onrender.com/assistant");
+});
 addressForm.addEventListener("submit", (event) => {
   event.preventDefault();
   window.zenvoraBrowser.navigate(addressInput.value);

@@ -2,7 +2,7 @@
   "id": "/",
   "name": "ZENVORA",
   "short_name": "ZENVORA",
-  "description": "Search the web and manage your ZENVORA website library.",
+  "description": "Search the web, explore popular apps, and chat with ZENVORA AI by text or voice.",
   "lang": "en",
   "start_url": "/",
   "scope": "/",
