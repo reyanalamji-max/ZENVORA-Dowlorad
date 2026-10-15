@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { after, before, test } from "node:test";
@@ -22,6 +22,10 @@ after(async () => {
 });
 
 test("download page links to the branded Windows installer", async () => {
+  const renderBlueprint = await readFile(new URL("./render.yaml", import.meta.url), "utf8");
+  assert.match(renderBlueprint, /buildCommand: npm run build/);
+  assert.match(renderBlueprint, /startCommand: npm start/);
+
   const response = await fetch(`${baseUrl}/download`);
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type"), /text\/html/);
@@ -32,7 +36,7 @@ test("download page links to the branded Windows installer", async () => {
   assert.match(html, /ZENVORA goes where you go/);
   assert.match(html, /id="phone-install"[^>]+href="\/"[^>]+hidden/);
   assert.match(html, /id="universal-install" href="\/"/);
-  assert.doesNotMatch(html, /download="ZENVORA-Search-Setup\.exe"/);
+  assert.equal((html.match(/download="ZENVORA-Search-Setup\.exe"/g) ?? []).length, 2);
   assert.match(html, /Mac, Chromebook &amp; other PCs/);
   assert.match(html, /Open &amp; install ZENVORA/);
   assert.match(html, /Open &amp; add to Home Screen/);

@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: zenvora-dowlorad
+    runtime: node
+    buildCommand: npm run build
+    startCommand: npm start

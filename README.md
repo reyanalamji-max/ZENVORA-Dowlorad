@@ -26,7 +26,7 @@ Run `node --test navigation.test.cjs` in `desktop-app` to verify app-internal ta
 
 ## Deploy
 
-In Render's service settings, set the **Build Command** to `npm run build` and the **Start Command** to `npm start`. The build installs the desktop packaging tools (including dev dependencies) and creates `desktop-app/dist/ZENVORA Search Setup 1.0.0.exe`, which `/download-app` serves. Redeploy after changing the build command. To publish a signed release instead, configure the build environment with the signing secrets and set the Render build command to `npm install --include=dev --prefix desktop-app && npm run package:release --prefix desktop-app`. Never commit the certificate or its password, and only publish an installer that has been tested on a Windows device.
+The included `render.yaml` configures the Render build command as `npm run build` and the start command as `npm start`. The build installs the desktop packaging tools (including dev dependencies) and creates `desktop-app/dist/ZENVORA Search Setup 1.0.0.exe`, which `/download-app` serves as a direct download. If the existing Render service is not managed from this Blueprint, set those same commands in its service settings and redeploy; without the build command the installer is absent and the download endpoint returns HTTP 503. To publish a signed release instead, configure the build environment with the signing secrets and set the Render build command to `npm install --include=dev --prefix desktop-app && npm run package:release --prefix desktop-app`. Never commit the certificate or its password, and only publish an installer that has been tested on a Windows device.
 
 ## Public content, privacy, and indexing
 
