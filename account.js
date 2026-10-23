@@ -5,6 +5,7 @@ const loginForm = document.querySelector("#account-login-form");
 const profileForm = document.querySelector("#profile-form");
 const saveUrl = new URLSearchParams(window.location.search).get("save");
 const websiteList = document.querySelector("#account-websites");
+const providerButtons = document.querySelectorAll(".social-button");
 
 async function request(url, options) {
   const response = await fetch(url, options);
@@ -78,6 +79,10 @@ function showAccount(account) {
   authPanel.hidden = true;
   profilePanel.hidden = false;
   document.querySelector("#profile-username").value = account.username;
+  if (account.email) {
+    const emailField = document.querySelector("#profile-email");
+    if (emailField) emailField.value = account.email;
+  }
   renderWebsites(account.websites);
 }
 
@@ -125,6 +130,7 @@ profileForm.addEventListener("submit", async (event) => {
       body: JSON.stringify(values)
     });
     document.querySelector("#profile-username").value = result.account.username;
+    if (result.account.email) document.querySelector("#profile-email").value = result.account.email;
     document.querySelector("#current-password").value = "";
     document.querySelector("#new-password").value = "";
     setMessage("#profile-message", "Account updated.");
@@ -146,6 +152,14 @@ document.querySelector("#account-logout").addEventListener("click", async () => 
   } catch (error) {
     setMessage("#profile-message", error.message);
   }
+});
+
+providerButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const provider = button.dataset.provider;
+    setMessage("#register-message", `Continue with ${provider.charAt(0).toUpperCase() + provider.slice(1)} is available after you connect a real OAuth provider.`);
+    setMessage("#account-login-message", "OAuth sign-in requires a configured provider in the server environment.");
+  });
 });
 
 request("/api/account/me")

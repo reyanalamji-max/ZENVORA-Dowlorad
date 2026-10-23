@@ -24,12 +24,21 @@
       </a>
       <section id="auth-panel">
         <h1>Your account</h1>
-        <p class="muted">Save websites to your account. Only you and the site admin can view them.</p>
+        <p class="muted">Use a real email address, save private websites, and keep access locked to your account.</p>
         <div class="account-forms">
+          <div class="social-auth" aria-label="Sign in with a provider">
+            <button class="social-button" type="button" data-provider="github" aria-label="Continue with GitHub">GitHub</button>
+            <button class="social-button" type="button" data-provider="google" aria-label="Continue with Google">Google</button>
+            <button class="social-button" type="button" data-provider="microsoft" aria-label="Continue with Microsoft">Microsoft</button>
+            <button class="social-button" type="button" data-provider="apple" aria-label="Continue with Apple">Apple</button>
+          </div>
+          <div class="account-divider"><span>or use email</span></div>
           <form id="register-form">
             <h2>Create an account</h2>
             <label for="register-username">Username</label>
             <input id="register-username" name="username" type="text" minlength="3" maxlength="32" autocomplete="username" required>
+            <label for="register-email">Real email address</label>
+            <input id="register-email" name="email" type="email" maxlength="254" autocomplete="email" required>
             <label for="register-password">Password (at least 12 characters)</label>
             <input id="register-password" name="password" type="password" minlength="12" maxlength="1024" autocomplete="new-password" required>
             <button class="primary-button" type="submit">Create account</button>
@@ -37,8 +46,8 @@
           </form>
           <form id="account-login-form">
             <h2>Already have an account?</h2>
-            <label for="account-username">Username</label>
-            <input id="account-username" name="username" type="text" maxlength="32" autocomplete="username" required>
+            <label for="account-username">Username or email</label>
+            <input id="account-username" name="username" type="text" maxlength="254" autocomplete="username" required>
             <label for="account-password">Password</label>
             <input id="account-password" name="password" type="password" maxlength="1024" autocomplete="current-password" required>
             <button class="primary-button" type="submit">Sign in</button>
@@ -57,6 +66,8 @@
         <form id="profile-form">
           <label for="profile-username">Username</label>
           <input id="profile-username" name="username" type="text" minlength="3" maxlength="32" autocomplete="username" required>
+          <label for="profile-email">Email</label>
+          <input id="profile-email" name="email" type="email" maxlength="254" autocomplete="email" required>
           <label for="current-password">Current password (required to save changes)</label>
           <input id="current-password" name="currentPassword" type="password" maxlength="1024" autocomplete="current-password" required>
           <label for="new-password">New password (leave blank to keep current)</label>

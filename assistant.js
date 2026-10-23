@@ -37,7 +37,19 @@ fetch("/api/assistant/status")
 
 function appendMessage(text, role, extraClass = "") {
   const message = document.createElement("p");
-  message.className = `assistant-message${role === "user" ? " assistant-message-user" : ""}${extraClass ? ` ${extraClass}` : ""}`;
+  const classNames = ["assistant-message"];
+  if (role === "user") {
+    classNames.push("assistant-message-user");
+  }
+  if (extraClass) {
+    classNames.push(extraClass);
+    if (role === "model" && !extraClass.includes("assistant-message-pending")) {
+      classNames.push("assistant-rgb-flow");
+    }
+  } else if (role === "model") {
+    classNames.push("assistant-rgb-flow");
+  }
+  message.className = classNames.join(" ");
   message.textContent = text;
   conversationElement.append(message);
   conversationElement.scrollTop = conversationElement.scrollHeight;

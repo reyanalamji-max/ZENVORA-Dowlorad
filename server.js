@@ -37,6 +37,7 @@ const STATIC_FILES = {
   "/apps": ["apps.html", "text/html; charset=utf-8"],
   "/videos": ["videos.html", "text/html; charset=utf-8"],
   "/account": ["account.html", "text/html; charset=utf-8"],
+  "/admin": ["admin.html", "text/html; charset=utf-8"],
   "/open": ["viewer.html", "text/html; charset=utf-8"],
   "/assistant": ["assistant.html", "text/html; charset=utf-8"],
   "/download": ["download.html", "text/html; charset=utf-8"],
@@ -46,6 +47,8 @@ const STATIC_FILES = {
   "/apps.js": ["apps.js", "text/javascript; charset=utf-8"],
   "/videos.js": ["videos.js", "text/javascript; charset=utf-8"],
   "/account.js": ["account.js", "text/javascript; charset=utf-8"],
+  "/admin.js": ["admin.js", "text/javascript; charset=utf-8"],
+  "/login.js": ["login.js", "text/javascript; charset=utf-8"],
   "/viewer.js": ["viewer.js", "text/javascript; charset=utf-8"],
   "/assistant.js": ["assistant.js", "text/javascript; charset=utf-8"],
   "/assistant.css": ["assistant.css", "text/css; charset=utf-8"],
@@ -64,6 +67,7 @@ const NOINDEX_PATHS = new Set([
   "/apps",
   "/videos",
   "/account",
+  "/admin",
   "/open",
   "/assistant",
   "/offline.html",
@@ -122,6 +126,28 @@ function validateUsername(value) {
     throw new Error("Username must be 3 to 32 characters: letters, numbers, dots, underscores, or hyphens.");
   }
   return username;
+}
+
+function validateEmail(value) {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+  if (typeof value !== "string") {
+    throw new Error("Use a valid email address to create your account.");
+  }
+  const email = value.trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+    throw new Error("Use a valid email address to create your account.");
+  }
+  return email;
+}
+
+function maskEmail(email) {
+  if (typeof email !== "string" || !email.includes("@")) return "hidden";
+  if (email.endsWith("@placeholder.invalid")) return "hidden";
+  const [local, domain] = email.split("@", 2);
+  const visibleLocal = local.length <= 2 ? `${local[0] ?? ""}*` : `${local.slice(0, 2)}***`;
+  return `${visibleLocal}@${domain}`;
 }
 
 function validateAccountPassword(value) {
@@ -489,6 +515,7 @@ export function createApp({
     return {
       id: account.id,
       username: account.username,
+      email: account.email ? maskEmail(account.email) : undefined,
       createdAt: account.createdAt,
       websites: account.websites.map(({ name, url }) => ({ name, url }))
     };
@@ -497,6 +524,7 @@ export function createApp({
   function publicUser(user) {
     return {
       username: user.username,
+      email: user.email ? maskEmail(user.email) : undefined,
       createdAt: user.createdAt,
       websites: user.websites.map(({ name, url }) => ({ name, url }))
     };
@@ -703,9 +731,11 @@ export function createApp({
         return;
       }
       let username;
+      let email;
       let password;
       try {
         username = validateUsername(body.username);
+        email = validateEmail(body.email);
         password = validateAccountPassword(body.password);
       } catch (error) {
         sendJson(response, 400, { error: error.message });
@@ -713,12 +743,14 @@ export function createApp({
       }
       const credentials = await hashAccountPassword(password);
       const user = await mutateUsers((users) => {
-        if (users.some((item) => item.username.toLocaleLowerCase() === username.toLocaleLowerCase())) {
+        if (users.some((item) => item.username.toLocaleLowerCase() === username.toLocaleLowerCase()
+          || (item.email && item.email.toLocaleLowerCase() === email.toLocaleLowerCase()))) {
           return null;
         }
         const account = {
           id: randomBytes(16).toString("hex"),
           username,
+          email,
           passwordSalt: credentials.salt,
           passwordHash: credentials.hash,
           createdAt: new Date().toISOString(),
@@ -758,7 +790,9 @@ export function createApp({
         return;
       }
       const users = await usersPromise;
-      const user = users.find((item) => item.username.toLocaleLowerCase() === body.username.trim().toLocaleLowerCase());
+      const lookupValue = body.username.trim().toLocaleLowerCase();
+      const user = users.find((item) => item.username.toLocaleLowerCase() === lookupValue
+        || (item.email && item.email.toLocaleLowerCase() === lookupValue));
       const matches = user
         ? await accountPasswordsMatch(body.password, user)
         : (await scrypt(body.password, "zenvora-unknown-account-salt", 64), false);
@@ -809,9 +843,11 @@ export function createApp({
         return;
       }
       let newUsername = currentUser.username;
+      let newEmail = currentUser.email ?? "";
       let newCredentials = null;
       try {
         if (body.username !== undefined && body.username !== "") newUsername = validateUsername(body.username);
+        if (body.email !== undefined && body.email !== "") newEmail = validateEmail(body.email);
         if (body.newPassword !== undefined && body.newPassword !== "") {
           newCredentials = await hashAccountPassword(validateAccountPassword(body.newPassword));
         }
@@ -820,10 +856,13 @@ export function createApp({
         return;
       }
       const updated = await mutateUsers((allUsers) => {
-        if (allUsers.some((item) => item.id !== currentUser.id
-          && item.username.toLocaleLowerCase() === newUsername.toLocaleLowerCase())) return null;
+        if (allUsers.some((item) => item.id !== currentUser.id && (
+          item.username.toLocaleLowerCase() === newUsername.toLocaleLowerCase()
+          || (item.email && item.email.toLocaleLowerCase() === newEmail.toLocaleLowerCase())
+        ))) return null;
         const account = allUsers.find((item) => item.id === currentUser.id);
         account.username = newUsername;
+        if (newEmail) account.email = newEmail;
         if (newCredentials) {
           account.passwordSalt = newCredentials.salt;
           account.passwordHash = newCredentials.hash;

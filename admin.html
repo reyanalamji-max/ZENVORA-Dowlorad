@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>Admin · Zenvora</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/login.js" defer></script>
+  </head>
+  <body>
+    <header class="results-header">
+      <div class="results-brand-group">
+        <a class="results-brand" href="/" aria-label="Zenvora home">
+          <img class="brand-mark" src="/logo.svg" alt="">
+          <span id="results-brand-name">Zenvora</span>
+        </a>
+      </div>
+    </header>
+    <main class="account-page">
+      <section class="account-card" aria-labelledby="admin-title">
+        <h1 id="admin-title">Owner sign in</h1>
+        <p class="muted">Manage the Zenvora site settings.</p>
+        <form id="login-form" method="post" novalidate>
+          <label for="login-password">Password</label>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+          <button type="submit">Sign in</button>
+        </form>
+        <p id="login-status" role="status" aria-live="polite"></p>
+      </section>
+    </main>
+  </body>
+</html>

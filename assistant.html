@@ -13,62 +13,121 @@
     <script src="/assistant.js" defer></script>
   </head>
   <body class="assistant-body">
-    <header class="assistant-header">
-      <a class="assistant-brand" href="/" aria-label="ZENVORA home">
-        <img src="/logo.svg" alt="" width="36" height="36">
-        <span>ZENVORA</span>
-      </a>
-      <nav aria-label="Main navigation">
-        <a href="/">Search</a>
-        <a href="/apps">Apps</a>
-        <a href="/download">Download</a>
-      </nav>
-    </header>
-    <main class="assistant-main">
-      <section class="assistant-card" aria-labelledby="assistant-title">
-        <div class="assistant-heading">
-          <span class="assistant-mark" aria-hidden="true">✦</span>
-          <div>
-            <p class="assistant-eyebrow">YOUR CONVERSATIONAL ASSISTANT</p>
-            <h1 id="assistant-title">ZENVORA AI Mode</h1>
-            <p>Chat by typing or start a hands-free voice conversation.</p>
-          </div>
-          <button class="assistant-clear" id="clear-chat" type="button">New chat</button>
+    <div class="assistant-shell">
+      <aside class="assistant-sidebar" aria-label="AI navigation">
+        <div class="assistant-sidebar-top">
+          <a class="assistant-brand" href="/" aria-label="ZENVORA home">
+            <img src="/logo.svg" alt="" width="34" height="34">
+            <span>ZENVORA</span>
+          </a>
+          <button class="assistant-new-chat" id="clear-chat" type="button">+ New chat</button>
         </div>
-        <div class="assistant-conversation" id="conversation" role="log" aria-live="polite" aria-relevant="additions text">
-          <p class="assistant-welcome">Hi! What would you like to talk about?</p>
+
+        <div class="assistant-sidebar-section">
+          <p class="assistant-sidebar-label">Create</p>
+          <nav class="assistant-nav" aria-label="AI tools">
+            <button class="assistant-nav-item is-active" type="button">Gemini</button>
+            <button class="assistant-nav-item" type="button">Deep Research</button>
+            <button class="assistant-nav-item" type="button">Canvas</button>
+            <button class="assistant-nav-item" type="button">Image</button>
+            <button class="assistant-nav-item" type="button">Live</button>
+            <button class="assistant-nav-item" type="button">Code</button>
+          </nav>
         </div>
-        <div class="voice-mode-panel">
-          <button class="voice-mode-button" id="voice-mode" type="button" aria-pressed="false">
-            <span class="voice-mode-icon" aria-hidden="true">🎙</span>
-            <span id="voice-mode-label">Start voice conversation</span>
-          </button>
-          <span class="voice-mode-hint">Speak naturally; ZENVORA listens and replies aloud.</span>
+
+        <div class="assistant-sidebar-section">
+          <p class="assistant-sidebar-label">Recent chats</p>
+          <ul class="assistant-recent-list">
+            <li><button type="button">Plan launch strategy</button></li>
+            <li><button type="button">Summarize notes</button></li>
+            <li><button type="button">Generate product brief</button></li>
+          </ul>
         </div>
-        <form class="assistant-form" id="assistant-form">
-          <label class="sr-only" for="assistant-input">Message ZENVORA AI</label>
-          <textarea id="assistant-input" maxlength="4000" rows="1" placeholder="Message ZENVORA AI…" required></textarea>
-          <div class="assistant-controls">
-            <div class="assistant-voice-controls">
-              <button class="assistant-mic" id="voice-input" type="button" aria-label="Dictate one message">🎙 <span>Dictate</span></button>
-              <label class="assistant-language-label" for="voice-language">Speech</label>
-              <select id="voice-language" aria-label="Speech language">
-                <option value="hi-IN">हिन्दी</option>
-                <option value="en-IN">English (India)</option>
-                <option value="en-US">English (US)</option>
+
+        <div class="assistant-sidebar-section sidebar-footer">
+          <div class="assistant-model-card">
+            <span class="assistant-model-badge">Gemini</span>
+            <label class="assistant-model-picker" for="model-select">
+              <span>Model</span>
+              <select id="model-select" aria-label="Choose AI model">
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                <option value="deep-research">Deep Research</option>
+                <option value="gemini-live">Gemini Live</option>
               </select>
-              <label class="assistant-speak-toggle"><input id="speak-replies" type="checkbox" checked> Speak replies</label>
-            </div>
-            <button class="assistant-send" id="send-message" type="submit">Send</button>
+            </label>
           </div>
-        </form>
-        <p class="assistant-status" id="assistant-status" role="status" aria-live="polite"></p>
-        <p class="assistant-disclaimer">AI responses can be inaccurate. Check important information from trusted sources.</p>
-      </section>
-    </main>
-    <footer class="editorial-footer">
-      <a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/disclaimer">Disclaimer</a>
-    </footer>
+        </div>
+      </aside>
+
+      <main class="assistant-main" aria-label="ZENVORA AI workspace">
+        <section class="assistant-card" aria-labelledby="assistant-title">
+          <header class="assistant-header-bar">
+            <div>
+              <p class="assistant-eyebrow">ZENVORA AI</p>
+              <h1 id="assistant-title">Gemini-style workspace</h1>
+            </div>
+            <div class="assistant-top-actions">
+              <button class="assistant-ghost" type="button">Share</button>
+              <button class="assistant-ghost" type="button">History</button>
+            </div>
+          </header>
+
+          <div class="assistant-prompt-row" aria-label="Suggested prompts">
+            <button type="button" class="assistant-chip" data-prompt="Explain this concept like I’m new to it.">Explain</button>
+            <button type="button" class="assistant-chip" data-prompt="Give me a clean plan with priorities and risks.">Plan</button>
+            <button type="button" class="assistant-chip" data-prompt="Draft a polished response for a professional email.">Email</button>
+            <button type="button" class="assistant-chip" data-prompt="Turn this into a step-by-step action checklist.">Checklist</button>
+            <button type="button" class="assistant-chip" data-prompt="Generate a concise summary with key takeaways.">Summary</button>
+          </div>
+
+          <div class="assistant-conversation" id="conversation" role="log" aria-live="polite" aria-relevant="additions text">
+            <div class="assistant-welcome-panel">
+              <div class="assistant-mark" aria-hidden="true">✦</div>
+              <div>
+                <p class="assistant-welcome-title">Hi, I’m ZENVORA AI.</p>
+                <p class="assistant-welcome-copy">Ask about ideas, coding, research, writing, summaries, or anything you want to build.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="assistant-tools-row" aria-label="AI tools">
+            <button type="button" class="assistant-tool">🧠 Research</button>
+            <button type="button" class="assistant-tool">🖼️ Images</button>
+            <button type="button" class="assistant-tool">💻 Code</button>
+            <button type="button" class="assistant-tool">📄 Docs</button>
+          </div>
+
+          <div class="voice-mode-panel">
+            <button class="voice-mode-button" id="voice-mode" type="button" aria-pressed="false">
+              <span class="voice-mode-icon" aria-hidden="true">🎙</span>
+              <span id="voice-mode-label">Start voice conversation</span>
+            </button>
+            <span class="voice-mode-hint">Speak naturally; ZENVORA listens and replies aloud.</span>
+          </div>
+
+          <form class="assistant-form" id="assistant-form">
+            <label class="sr-only" for="assistant-input">Message ZENVORA AI</label>
+            <textarea id="assistant-input" maxlength="4000" rows="1" placeholder="Ask ZENVORA AI to research, write, explain, or create…" required></textarea>
+            <div class="assistant-controls">
+              <div class="assistant-voice-controls">
+                <button class="assistant-mic" id="voice-input" type="button" aria-label="Dictate one message">🎙 <span>Dictate</span></button>
+                <label class="assistant-language-label" for="voice-language">Speech</label>
+                <select id="voice-language" aria-label="Speech language">
+                  <option value="hi-IN">हिन्दी</option>
+                  <option value="en-IN">English (India)</option>
+                  <option value="en-US">English (US)</option>
+                </select>
+                <label class="assistant-speak-toggle"><input id="speak-replies" type="checkbox" checked> Speak replies</label>
+              </div>
+              <button class="assistant-send" id="send-message" type="submit">Send</button>
+            </div>
+          </form>
+          <p class="assistant-status" id="assistant-status" role="status" aria-live="polite"></p>
+          <p class="assistant-disclaimer">AI responses can be inaccurate. Check important information from trusted sources.</p>
+        </section>
+      </main>
+    </div>
     <script src="/pwa.js" defer></script>
   </body>
 </html>
