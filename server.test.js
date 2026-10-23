@@ -44,6 +44,14 @@ test("search results stay on the Zenvora site and use a local-only content polic
   assert.match(homepageHtml, /Research and learn/);
   assert.match(homepageHtml, /How to search with ZENVORA/);
   assert.match(homepageHtml, /rel="canonical" href="https:\/\/zenvora-dowlorad\.onrender\.com\/"/);
+  assert.equal((homepageHtml.match(/<h1(?:\s|>)/g) ?? []).length, 1);
+  assert.match(homepageHtml, /property="og:site_name" content="ZENVORA"/);
+  assert.match(homepageHtml, /name="twitter:card" content="summary_large_image"/);
+  const structuredData = homepageHtml.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+  assert.ok(structuredData, "homepage should provide structured data");
+  const structuredGraph = JSON.parse(structuredData[1])["@graph"];
+  assert.ok(structuredGraph.some((entry) => entry["@type"] === "WebSite"));
+  assert.ok(structuredGraph.some((entry) => entry["@type"] === "Organization"));
   assert.equal((homepageHtml.match(/name="google-adsense-account"/g) ?? []).length, 1);
 
   for (const route of ["/about", "/contact", "/privacy", "/terms", "/disclaimer"]) {
@@ -53,6 +61,9 @@ test("search results stay on the Zenvora site and use a local-only content polic
     const html = await response.text();
     assert.match(html, /<h1/);
     assert.match(html, /<link rel="canonical"/);
+    assert.match(html, /name="description"/);
+    assert.match(html, /property="og:url"/);
+    assert.match(html, /name="twitter:card"/);
     assert.match(html, /href="\/privacy"/);
   }
 
@@ -62,7 +73,18 @@ test("search results stay on the Zenvora site and use a local-only content polic
   const sitemap = await fetch(`${baseUrl}/sitemap.xml`);
   assert.equal(sitemap.status, 200);
   assert.match(sitemap.headers.get("content-type"), /application\/xml/);
-  assert.match(await sitemap.text(), /https:\/\/zenvora-dowlorad\.onrender\.com\/privacy/);
+  const sitemapXml = await sitemap.text();
+  assert.match(sitemapXml, /https:\/\/zenvora-dowlorad\.onrender\.com\/privacy/);
+  const sitemapUrls = [...sitemapXml.matchAll(/<loc>(.*?)<\/loc>/g)].map((match) => match[1]);
+  assert.deepEqual(sitemapUrls, [
+    "https://zenvora-dowlorad.onrender.com/",
+    "https://zenvora-dowlorad.onrender.com/about",
+    "https://zenvora-dowlorad.onrender.com/contact",
+    "https://zenvora-dowlorad.onrender.com/privacy",
+    "https://zenvora-dowlorad.onrender.com/terms",
+    "https://zenvora-dowlorad.onrender.com/disclaimer",
+    "https://zenvora-dowlorad.onrender.com/download"
+  ]);
 
   const initialSettingsResponse = await fetch(`${baseUrl}/api/settings`);
   const initialSettings = await initialSettingsResponse.json();

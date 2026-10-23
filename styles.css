@@ -2128,7 +2128,7 @@ a:hover {
     text-transform: uppercase;
   }
 
-  .home-intro h1 {
+  .home-intro h2 {
     margin: 0 0 14px;
     color: #202124;
     font-size: clamp(29px, 4.5vw, 40px);
