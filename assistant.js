@@ -9,6 +9,10 @@ const speakReplies = document.querySelector("#speak-replies");
 const voiceModeButton = document.querySelector("#voice-mode");
 const voiceModeLabel = document.querySelector("#voice-mode-label");
 const modelSelect = document.querySelector("#model-select");
+const imageOptions = document.querySelector("#image-options");
+const imageStyle = document.querySelector("#image-style");
+const imageAspectRatio = document.querySelector("#image-aspect-ratio");
+const imageSize = document.querySelector("#image-size");
 const history = [];
 const recentPrompts = [];
 const modePlaceholders = {
@@ -74,6 +78,7 @@ function setMode(mode) {
   activeMode = mode;
   input.placeholder = modePlaceholders[mode];
   input.maxLength = mode === "image" ? 2000 : 4000;
+  imageOptions.hidden = mode !== "image";
   document.querySelectorAll("[data-mode]").forEach((button) => {
     const selected = button.dataset.mode === mode;
     button.classList.toggle("is-active", selected && button.classList.contains("assistant-nav-item"));
@@ -197,7 +202,12 @@ form.addEventListener("submit", async (event) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(isImageRequest
-        ? { prompt: text }
+        ? {
+          prompt: text,
+          style: imageStyle.value,
+          aspectRatio: imageAspectRatio.value,
+          imageSize: imageSize.value
+        }
         : {
           messages: [...history, { role: "user", text }],
           mode: requestMode,

@@ -107,6 +107,36 @@
           </div>
 
           <form class="assistant-form" id="assistant-form">
+            <div class="assistant-image-options" id="image-options" hidden>
+              <label>
+                <span>Style</span>
+                <select id="image-style" aria-label="Image style">
+                  <option value="as-described">As described</option>
+                  <option value="3d">3D render</option>
+                  <option value="photorealistic">Photorealistic</option>
+                  <option value="illustration">Illustration</option>
+                  <option value="anime">Anime</option>
+                  <option value="cinematic">Cinematic</option>
+                </select>
+              </label>
+              <label>
+                <span>Shape</span>
+                <select id="image-aspect-ratio" aria-label="Image shape">
+                  <option value="1:1">Square</option>
+                  <option value="3:2">Landscape</option>
+                  <option value="2:3">Portrait</option>
+                  <option value="16:9">Wide</option>
+                  <option value="9:16">Tall</option>
+                </select>
+              </label>
+              <label>
+                <span>Resolution</span>
+                <select id="image-size" aria-label="Image resolution">
+                  <option value="1K">Standard (1K)</option>
+                  <option value="2K">High detail (2K)</option>
+                </select>
+              </label>
+            </div>
             <label class="sr-only" for="assistant-input">Message ZENVORA AI</label>
             <textarea id="assistant-input" maxlength="4000" rows="1" placeholder="Ask ZENVORA AI to research, write, explain, or create…" required></textarea>
             <div class="assistant-controls">

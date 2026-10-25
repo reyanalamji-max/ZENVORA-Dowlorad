@@ -17,6 +17,16 @@ const MAX_ASSISTANT_MESSAGE_LENGTH = 4000;
 const GEMINI_MODEL = "gemini-3-flash-preview";
 const GEMINI_MODELS = new Set([GEMINI_MODEL, "gemini-2.5-flash", "gemini-2.5-pro"]);
 const GEMINI_IMAGE_MODEL = "gemini-3.1-flash-lite-image";
+const GEMINI_IMAGE_STYLES = new Map([
+  ["as-described", "Follow the user's requested visual style."],
+  ["3d", "Create a polished, high-detail 3D render with realistic materials, dimensional lighting, and refined composition."],
+  ["photorealistic", "Create a photorealistic image with natural detail, realistic lighting, and a carefully composed frame."],
+  ["illustration", "Create a polished digital illustration with clear shapes, intentional color, and refined details."],
+  ["anime", "Create a polished anime-style illustration with expressive features and clean, detailed artwork."],
+  ["cinematic", "Create a cinematic image with dramatic lighting, rich atmosphere, and a deliberate film-like composition."]
+]);
+const GEMINI_IMAGE_ASPECT_RATIOS = new Set(["1:1", "3:2", "2:3", "16:9", "9:16"]);
+const GEMINI_IMAGE_SIZES = new Set(["1K", "2K"]);
 const ASSISTANT_MODES = new Set(["chat", "research", "canvas", "live", "code", "website", "docs"]);
 const ASSISTANT_MODE_INSTRUCTIONS = {
   chat: "Answer naturally in the language used by the user. Be clear, respectful, and concise.",
@@ -54,7 +64,7 @@ const STATIC_FILES = {
   "/assistant": ["assistant.html", "text/html; charset=utf-8"],
   "/browser": ["browser.html", "text/html; charset=utf-8"],
   "/download": ["download.html", "text/html; charset=utf-8"],
-  "/download-app": ["desktop-app/dist/ZENVORA Search Setup 1.0.0.exe", "application/octet-stream"],
+  "/download-app": ["desktop-app/dist/ZENVORA Search Setup 1.0.2.exe", "application/octet-stream"],
   "/app.js": ["app.js", "text/javascript; charset=utf-8"],
   "/search.js": ["search.js", "text/javascript; charset=utf-8"],
   "/apps.js": ["apps.js", "text/javascript; charset=utf-8"],
@@ -1173,6 +1183,15 @@ export function createApp({
         sendJson(response, 400, { error: "Describe the image in 1 to 2000 characters." });
         return;
       }
+      const style = body.style ?? "as-described";
+      const aspectRatio = body.aspectRatio ?? "1:1";
+      const imageSize = body.imageSize ?? "1K";
+      if (typeof style !== "string" || !GEMINI_IMAGE_STYLES.has(style)
+        || typeof aspectRatio !== "string" || !GEMINI_IMAGE_ASPECT_RATIOS.has(aspectRatio)
+        || typeof imageSize !== "string" || !GEMINI_IMAGE_SIZES.has(imageSize)) {
+        sendJson(response, 400, { error: "Choose a supported image style, shape, and resolution." });
+        return;
+      }
 
       let providerResponse;
       try {
@@ -1185,8 +1204,15 @@ export function createApp({
               "x-goog-api-key": configuredGeminiApiKey
             },
             body: JSON.stringify({
-              contents: [{ parts: [{ text: body.prompt.trim() }] }],
-              generationConfig: { responseModalities: ["TEXT", "IMAGE"] }
+              contents: [{
+                parts: [{
+                  text: `${GEMINI_IMAGE_STYLES.get(style)}\nImage request: ${body.prompt.trim()}`
+                }]
+              }],
+              generationConfig: {
+                responseModalities: ["TEXT", "IMAGE"],
+                imageConfig: { aspectRatio, imageSize }
+              }
             }),
             signal: AbortSignal.timeout(60000)
           }

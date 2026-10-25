@@ -146,14 +146,31 @@ test("image generation proxies Gemini and returns only validated image data", as
   const response = await fetch(`${baseUrl}/api/assistant/image`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Origin: baseUrl },
-    body: JSON.stringify({ prompt: "A small blue bird on a branch" })
+    body: JSON.stringify({
+      prompt: "A small blue bird on a branch",
+      style: "3d",
+      aspectRatio: "16:9",
+      imageSize: "2K"
+    })
   });
 
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { imageData: "aGVsbG8=", mimeType: "image/png" });
   assert.equal(providerUrl, "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-image:generateContent");
   assert.equal(providerOptions.headers["x-goog-api-key"], "test-gemini-key");
-  assert.deepEqual(JSON.parse(providerOptions.body).generationConfig.responseModalities, ["TEXT", "IMAGE"]);
+  const imageRequest = JSON.parse(providerOptions.body);
+  assert.deepEqual(imageRequest.generationConfig, {
+    responseModalities: ["TEXT", "IMAGE"],
+    imageConfig: { aspectRatio: "16:9", imageSize: "2K" }
+  });
+  assert.match(imageRequest.contents[0].parts[0].text, /high-detail 3D render/);
+
+  const invalidImageOptions = await fetch(`${baseUrl}/api/assistant/image`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: baseUrl },
+    body: JSON.stringify({ prompt: "A harmless image", style: "unsupported" })
+  });
+  assert.equal(invalidImageOptions.status, 400);
 
   const invalidOrigin = await fetch(`${baseUrl}/api/assistant/image`, {
     method: "POST",

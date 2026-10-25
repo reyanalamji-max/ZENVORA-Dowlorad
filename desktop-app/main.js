@@ -60,12 +60,6 @@ async function persistPreferences() {
   await writeFile(path.join(userDataDirectory, PREFERENCES_FILE), `${JSON.stringify(preferences, null, 2)}\n`, {
     mode: 0o600
   });
-  ipcMain.handle("browser:set-chrome-height", (event, height) => {
-    if (event.sender !== window?.webContents || !Number.isSafeInteger(height) || height < 112 || height > 420) return false;
-    chromeHeight = height;
-    updateViewBounds();
-    return true;
-  });
 }
 
 async function persistSession() {
@@ -317,6 +311,12 @@ function getSenderTab(event) {
 }
 
 function registerIpcHandlers() {
+  ipcMain.handle("browser:set-chrome-height", (event, height) => {
+    if (event.sender !== window?.webContents || !Number.isSafeInteger(height) || height < 112 || height > 420) return false;
+    chromeHeight = height;
+    updateViewBounds();
+    return true;
+  });
   ipcMain.handle("browser:new-tab", (_event, address) => {
     const resolved = typeof address === "string" ? resolveAddress(address) : NEW_TAB_URL;
     if (!resolved) return null;
