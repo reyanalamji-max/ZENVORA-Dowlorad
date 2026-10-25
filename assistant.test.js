@@ -65,6 +65,8 @@ test("AI page and chat endpoint serve the platform and proxy Gemini without expo
   assert.match(assistantScript, /startListeningAgain/);
   assert.match(assistantScript, /speechSynthesis\.speak/);
   assert.match(assistantScript, /\/api\/assistant\/status/);
+  assert.match(assistantScript, /\/api\/assistant\/image/);
+  assert.match(assistantScript, /appendGeneratedImage/);
   const assistantStyles = await (await fetch(`${baseUrl}/assistant.css`)).text();
   assert.match(assistantStyles, /assistant-rgb-flow/);
 
@@ -81,6 +83,117 @@ test("AI page and chat endpoint serve the platform and proxy Gemini without expo
   assert.deepEqual(JSON.parse(providerOptions.body).contents, [
     { role: "user", parts: [{ text: "नमस्ते" }] }
   ]);
+});
+
+test("AI modes and selected Gemini models reach the provider through a validated request", async () => {
+  let providerUrl;
+  let providerOptions;
+  const server = createApp({
+    dataDir,
+    geminiApiKey: "test-gemini-key",
+    fetchImpl: async (url, options) => {
+      providerUrl = url;
+      providerOptions = options;
+      return new Response(JSON.stringify({
+        candidates: [{ content: { parts: [{ text: "<!doctype html><title>Example</title>" }] } }]
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+  });
+  const baseUrl = await listen(server);
+  const response = await fetch(`${baseUrl}/api/assistant`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: baseUrl },
+    body: JSON.stringify({
+      mode: "website",
+      model: "gemini-2.5-flash",
+      messages: [{ role: "user", text: "Build a landing page." }]
+    })
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(providerUrl, "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent");
+  assert.match(JSON.parse(providerOptions.body).systemInstruction.parts[0].text, /complete, runnable HTML\/CSS\/JavaScript/);
+
+  const invalidMode = await fetch(`${baseUrl}/api/assistant`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: baseUrl },
+    body: JSON.stringify({
+      mode: "untrusted-mode",
+      messages: [{ role: "user", text: "Hello" }]
+    })
+  });
+  assert.equal(invalidMode.status, 400);
+});
+
+test("image generation proxies Gemini and returns only validated image data", async () => {
+  let providerUrl;
+  let providerOptions;
+  const server = createApp({
+    dataDir,
+    geminiApiKey: "test-gemini-key",
+    fetchImpl: async (url, options) => {
+      providerUrl = url;
+      providerOptions = options;
+      return new Response(JSON.stringify({
+        candidates: [{ content: { parts: [
+          { text: "Generated." },
+          { inlineData: { mimeType: "image/png", data: "aGVsbG8=" } }
+        ] } }]
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+  });
+  const baseUrl = await listen(server);
+  const response = await fetch(`${baseUrl}/api/assistant/image`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: baseUrl },
+    body: JSON.stringify({ prompt: "A small blue bird on a branch" })
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { imageData: "aGVsbG8=", mimeType: "image/png" });
+  assert.equal(providerUrl, "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-image:generateContent");
+  assert.equal(providerOptions.headers["x-goog-api-key"], "test-gemini-key");
+  assert.deepEqual(JSON.parse(providerOptions.body).generationConfig.responseModalities, ["TEXT", "IMAGE"]);
+
+  const invalidOrigin = await fetch(`${baseUrl}/api/assistant/image`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: "https://attacker.example" },
+    body: JSON.stringify({ prompt: "A harmless image" })
+  });
+  assert.equal(invalidOrigin.status, 403);
+});
+
+test("image generation explains temporary rate limits and exhausted project quotas separately", async () => {
+  const cases = [
+    [
+      { error: { status: "RATE_LIMIT_EXCEEDED", message: "Requests per minute exceeded" } },
+      /temporarily rate-limited/
+    ],
+    [
+      { error: { status: "RESOURCE_EXHAUSTED", message: "Daily quota exceeded" } },
+      /quota for this project is exhausted or unavailable/
+    ]
+  ];
+
+  for (const [providerError, expectedMessage] of cases) {
+    const server = createApp({
+      dataDir,
+      geminiApiKey: "test-gemini-key",
+      fetchImpl: async () => new Response(JSON.stringify(providerError), {
+        status: 429,
+        headers: { "Content-Type": "application/json" }
+      })
+    });
+    const baseUrl = await listen(server);
+    const response = await fetch(`${baseUrl}/api/assistant/image`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: baseUrl },
+      body: JSON.stringify({ prompt: "A small blue bird" })
+    });
+
+    assert.equal(response.status, 502);
+    assert.match((await response.json()).error, expectedMessage);
+  }
 });
 
 test("AI chat requires same-origin requests and validates conversation turns", async () => {
@@ -126,6 +239,14 @@ test("AI chat reports a clear unavailable response when Gemini is unset or still
   assert.deepEqual(await response.json(), {
     error: "AI chat is not configured on this server. Add GEMINI_API_KEY in the Render environment settings, then redeploy."
   });
+
+  const imageResponse = await fetch(`${baseUrl}/api/assistant/image`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: baseUrl },
+    body: JSON.stringify({ prompt: "A small blue bird" })
+  });
+  assert.equal(imageResponse.status, 503);
+  assert.match((await imageResponse.json()).error, /Image generation is not configured/);
 });
 
 test("AI chat explains Gemini access and quota failures without exposing provider details", async () => {

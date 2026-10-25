@@ -5,7 +5,10 @@ const {
   getBrowserShortcut,
   getFaviconUrl,
   installInAppNavigation,
-  isWebUrl
+  isWebUrl,
+  normalizeBrowserPreferences,
+  reorderTabIds,
+  resolveBrowserAddress
 } = require("./navigation.cjs");
 
 test("tabs use a site's web favicon and safely fall back to its origin icon", () => {
@@ -69,6 +72,24 @@ test("native app stores and unsafe protocols are blocked, never launched externa
   assert.equal(openedTabs, 0);
 });
 
+test("only the exact packaged ZENVORA new-tab file is allowed as local navigation", () => {
+  const handlers = new Map();
+  const trustedNewTab = "file:///C:/Zenvora/newtab.html";
+  const webContents = {
+    on: (eventName, handler) => handlers.set(eventName, handler),
+    setWindowOpenHandler: () => {}
+  };
+  installInAppNavigation(webContents, () => {}, trustedNewTab);
+  for (const eventName of ["will-navigate", "will-redirect"]) {
+    let prevented = false;
+    handlers.get(eventName)({ preventDefault: () => { prevented = true; } }, trustedNewTab);
+    assert.equal(prevented, false);
+    prevented = false;
+    handlers.get(eventName)({ preventDefault: () => { prevented = true; } }, "file:///C:/Users/private.txt");
+    assert.equal(prevented, true);
+  }
+});
+
 test("microphone permission is limited to audio from the trusted ZENVORA tab", () => {
   const trustedPage = { getURL: () => "https://zenvora-dowlorad.onrender.com/assistant" };
   const trustedOrigin = "https://zenvora-dowlorad.onrender.com";
@@ -97,4 +118,42 @@ test("browser shortcuts support tab creation, closing, switching, and address fo
   assert.deepEqual(shortcut("3"), { action: "select-tab", index: 3 });
   assert.equal(getBrowserShortcut({ type: "keyDown", key: "t", meta: true }, "win32"), null);
   assert.deepEqual(getBrowserShortcut({ type: "keyDown", key: "t", meta: true }, "darwin"), { action: "new-tab" });
+  assert.deepEqual(shortcut("d"), { action: "downloads" });
+  assert.deepEqual(shortcut("f"), { action: "fullscreen" });
+});
+
+test("browser address bar distinguishes URLs from search queries", () => {
+  const searchBase = "https://zenvora.example";
+  assert.equal(resolveBrowserAddress("youtube.com", searchBase), "https://youtube.com/");
+  assert.equal(resolveBrowserAddress("https://gmail.com/inbox", searchBase), "https://gmail.com/inbox");
+  assert.equal(resolveBrowserAddress("best local coffee", searchBase), "https://zenvora.example/search?q=best%20local%20coffee");
+  assert.equal(resolveBrowserAddress("javascript:alert(1)", searchBase), null);
+  assert.equal(resolveBrowserAddress("", searchBase), null);
+});
+
+test("tab reorder and persisted browser preferences are normalized", () => {
+  assert.deepEqual(reorderTabIds(["a", "b", "c"], "c", "a"), ["c", "a", "b"]);
+  assert.deepEqual(reorderTabIds(["a", "b"], "missing", "a"), ["a", "b"]);
+  assert.deepEqual(normalizeBrowserPreferences({
+    homepageType: "custom",
+    homepageUrl: "https://example.org/",
+    bookmarks: [
+      { title: "Valid", url: "https://example.org/" },
+      { title: "Unsafe", url: "file:///secret" }
+    ]
+  }, "https://zenvora.example/"), {
+    homepageType: "custom",
+    homepageUrl: "https://example.org/",
+    bookmarks: [{ title: "Valid", url: "https://example.org/" }],
+    theme: "light"
+  });
+  assert.deepEqual(normalizeBrowserPreferences({
+    homepageType: "custom",
+    homepageUrl: "javascript:alert(1)"
+  }, "https://zenvora.example/"), {
+    homepageType: "custom",
+    homepageUrl: "https://zenvora.example/",
+    bookmarks: [],
+    theme: "light"
+  });
 });

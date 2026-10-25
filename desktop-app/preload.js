@@ -10,6 +10,15 @@ contextBridge.exposeInMainWorld("zenvoraBrowser", {
   back: () => ipcRenderer.invoke("browser:back"),
   forward: () => ipcRenderer.invoke("browser:forward"),
   reload: () => ipcRenderer.invoke("browser:reload"),
+  home: () => ipcRenderer.invoke("browser:home"),
+  moveTab: (tabId, targetId) => ipcRenderer.invoke("browser:move-tab", tabId, targetId),
+  toggleBookmark: (snapshot) => ipcRenderer.invoke("browser:toggle-bookmark", snapshot),
+  openBookmark: (url) => ipcRenderer.invoke("browser:open-bookmark", url),
+  getPreferences: () => ipcRenderer.invoke("browser:get-preferences"),
+  savePreferences: (preferences) => ipcRenderer.invoke("browser:save-preferences", preferences),
+  openDownload: (downloadId) => ipcRenderer.invoke("browser:open-download", downloadId),
+  toggleFullscreen: () => ipcRenderer.invoke("browser:toggle-fullscreen"),
+  setChromeHeight: (height) => ipcRenderer.invoke("browser:set-chrome-height", height),
   ready: () => ipcRenderer.send("browser:ready"),
   onState: (callback) => {
     const listener = (_event, state) => callback(state);
@@ -35,6 +44,26 @@ contextBridge.exposeInMainWorld("zenvoraBrowser", {
     const listener = () => callback();
     ipcRenderer.on("browser:focus-address", listener);
     listeners.set(callback, ["browser:focus-address", listener]);
+    return () => {
+      const registered = listeners.get(callback);
+      if (registered) ipcRenderer.removeListener(...registered);
+      listeners.delete(callback);
+    };
+  },
+  onDownloads: (callback) => {
+    const listener = (_event, downloads) => callback(downloads);
+    ipcRenderer.on("browser:downloads", listener);
+    listeners.set(callback, ["browser:downloads", listener]);
+    return () => {
+      const registered = listeners.get(callback);
+      if (registered) ipcRenderer.removeListener(...registered);
+      listeners.delete(callback);
+    };
+  },
+  onShowDownloads: (callback) => {
+    const listener = () => callback();
+    ipcRenderer.on("browser:show-downloads", listener);
+    listeners.set(callback, ["browser:show-downloads", listener]);
     return () => {
       const registered = listeners.get(callback);
       if (registered) ipcRenderer.removeListener(...registered);

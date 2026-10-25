@@ -1,4 +1,4 @@
-const CACHE_NAME = "zenvora-static-v7";
+const CACHE_NAME = "zenvora-static-v10";
 const PRECACHE_URLS = [
   "/offline.html",
   "/manifest.webmanifest",
@@ -17,6 +17,8 @@ const CACHEABLE_URLS = new Set([
   "/videos.js",
   "/assistant.js",
   "/assistant.css",
+  "/browser.js",
+  "/browser.css",
   "/download.js",
   "/account.js",
   "/download.html"

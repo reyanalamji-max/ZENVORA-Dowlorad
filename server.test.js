@@ -36,6 +36,7 @@ test("search results stay on the Zenvora site and use a local-only content polic
   assert.match(homepageHtml, /<details class="home-content" id="explore-content">/);
   assert.match(homepageHtml, /Explore useful apps, websites, and guides/);
   assert.match(homepageHtml, /class="home-header"/);
+  assert.match(homepageHtml, /class="page-nav-link" href="\/browser">Browser/);
   assert.match(homepageHtml, /class="home-ask-button" href="\/assistant"/);
   assert.match(homepageHtml, /id="apps-launcher"/);
   assert.equal((homepageHtml.match(/class="launcher-app/g) ?? []).length, 15);
@@ -95,6 +96,26 @@ test("search results stay on the Zenvora site and use a local-only content polic
   assert.match(searchPage.headers.get("content-type"), /text\/html/);
   assert.match(searchPage.headers.get("x-robots-tag"), /noindex/);
   assert.match(await searchPage.text(), /Zenvora search results/);
+
+  const browserPage = await fetch(`${baseUrl}/browser`);
+  assert.equal(browserPage.status, 200);
+  assert.match(browserPage.headers.get("x-robots-tag"), /noindex/);
+  assert.match(browserPage.headers.get("x-frame-options"), /SAMEORIGIN/);
+  assert.match(browserPage.headers.get("content-security-policy"), /frame-ancestors 'self'/);
+  const browserHtml = await browserPage.text();
+  assert.match(browserHtml, /id="web-tabs"[^>]*role="tablist"/);
+  assert.match(browserHtml, /id="web-address"/);
+  assert.match(browserHtml, /id="web-stop"[^>]*hidden/);
+  assert.equal((await fetch(`${baseUrl}/browser.js`)).status, 200);
+  assert.equal((await fetch(`${baseUrl}/browser.css`)).status, 200);
+  const browserScript = await (await fetch(`${baseUrl}/browser.js`)).text();
+  assert.match(browserScript, /INTERNAL_ROUTES/);
+  assert.match(browserScript, /This site opens outside the ZENVORA web workspace/);
+  assert.match(browserScript, /localStorage\.setItem/);
+  assert.match(browserScript, /addEventListener\("auxclick"/);
+  assert.match(browserScript, /showShortcutForm/);
+  assert.doesNotMatch(browserScript, /window\.prompt/);
+  assert.doesNotMatch(browserScript, /frame\.src\s*=\s*targetUrl\.href/);
 
   const downloadPage = await fetch(`${baseUrl}/download`);
   assert.equal(downloadPage.status, 200);
@@ -483,6 +504,7 @@ test("PWA manifest, icons, and privacy-safe service worker are served", async ()
   assert.match(workerResponse.headers.get("service-worker-allowed"), /\//);
   assert.match(workerResponse.headers.get("cache-control"), /no-cache/);
   const worker = await workerResponse.text();
+  assert.match(worker, /zenvora-static-v10/);
   assert.match(worker, /request\.mode === "navigate"/);
   assert.match(worker, /!CACHEABLE_URLS\.has\(requestUrl\.pathname\)/);
   assert.doesNotMatch(worker, /\/api\/.*cache\.put/s);

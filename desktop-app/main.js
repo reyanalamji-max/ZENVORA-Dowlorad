@@ -1,20 +1,97 @@
-const { app, BrowserWindow, WebContentsView, dialog, ipcMain, session } = require("electron");
+const { app, BrowserWindow, WebContentsView, dialog, ipcMain, session, shell } = require("electron");
+const { mkdir, readFile, writeFile } = require("node:fs/promises");
 const path = require("node:path");
+const { pathToFileURL } = require("node:url");
 const {
   canGrantMicrophonePermission,
   getBrowserShortcut,
   getFaviconUrl,
   installInAppNavigation,
-  isWebUrl
+  isWebUrl,
+  normalizeBrowserPreferences,
+  reorderTabIds,
+  resolveBrowserAddress
 } = require("./navigation.cjs");
 
 const START_URL = "https://zenvora-dowlorad.onrender.com/";
-const CHROME_HEIGHT = 112;
+const NEW_TAB_URL = "zenvora://newtab";
+const DEFAULT_CHROME_HEIGHT = 112;
+const PREFERENCES_FILE = "browser-preferences.json";
 
 let window;
 let activeTabId = null;
 let nextTabId = 1;
 const tabs = new Map();
+let chromeHeight = DEFAULT_CHROME_HEIGHT;
+let preferences = { homepageType: "zenvora", homepageUrl: START_URL, bookmarks: [], theme: "light" };
+const downloads = new Map();
+
+function getHomeUrl() {
+  if (preferences.homepageType === "custom") return preferences.homepageUrl;
+  if (preferences.homepageType === "newtab") return NEW_TAB_URL;
+  return START_URL;
+}
+
+async function loadPreferences() {
+  try {
+    const serialized = await readFile(path.join(app.getPath("userData"), PREFERENCES_FILE), "utf8");
+    preferences = normalizeBrowserPreferences(JSON.parse(serialized), START_URL);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+}
+
+function loadTab(tab, address) {
+  tab.isNewTab = address === NEW_TAB_URL;
+  if (tab.isNewTab) {
+    void tab.view.webContents.loadFile(path.join(__dirname, "newtab.html")).catch((error) => {
+      console.error("Could not load the ZENVORA new-tab page.", error);
+    });
+    return;
+  }
+  void tab.view.webContents.loadURL(address).catch((error) => {
+    console.error("Could not navigate ZENVORA tab.", error);
+  });
+}
+
+async function persistPreferences() {
+  const userDataDirectory = app.getPath("userData");
+  await mkdir(userDataDirectory, { recursive: true });
+  await writeFile(path.join(userDataDirectory, PREFERENCES_FILE), `${JSON.stringify(preferences, null, 2)}\n`, {
+    mode: 0o600
+  });
+  ipcMain.handle("browser:set-chrome-height", (event, height) => {
+    if (event.sender !== window?.webContents || !Number.isSafeInteger(height) || height < 112 || height > 420) return false;
+    chromeHeight = height;
+    updateViewBounds();
+    return true;
+  });
+}
+
+async function persistSession() {
+  const userDataDirectory = app.getPath("userData");
+  await mkdir(userDataDirectory, { recursive: true });
+  await writeFile(path.join(userDataDirectory, "browser-session.json"), `${JSON.stringify({
+    activeIndex: Math.max(0, [...tabs.keys()].indexOf(activeTabId)),
+    urls: [...tabs.values()]
+      .map((tab) => tab.isNewTab ? NEW_TAB_URL : tab.view.webContents.getURL())
+      .filter((url) => url === NEW_TAB_URL || isWebUrl(url))
+  }, null, 2)}\n`, { mode: 0o600 });
+}
+
+async function loadSession() {
+  try {
+    const state = JSON.parse(await readFile(path.join(app.getPath("userData"), "browser-session.json"), "utf8"));
+    if (!Array.isArray(state.urls)) return null;
+    return {
+      urls: state.urls.filter((url) => typeof url === "string" && (url === NEW_TAB_URL || isWebUrl(url))).slice(0, 20),
+      activeIndex: Number.isSafeInteger(state.activeIndex) ? state.activeIndex : 0
+    };
+  } catch (error) {
+    if (error.code !== "ENOENT" && !(error instanceof SyntaxError)) throw error;
+    return null;
+  }
+}
 
 function getTab(tabId) {
   return tabs.get(tabId);
@@ -25,7 +102,7 @@ function getTabSnapshot(tab) {
   return {
     id: tab.id,
     title: tab.title,
-    url: webContents.getURL() || START_URL,
+    url: tab.isNewTab ? "" : webContents.getURL() || START_URL,
     favicon: tab.favicon,
     loading: webContents.isLoading(),
     canGoBack: webContents.navigationHistory.canGoBack(),
@@ -37,7 +114,9 @@ function sendBrowserState() {
   if (!window || window.isDestroyed() || window.webContents.isLoading()) return;
   window.webContents.send("browser:state", {
     activeTabId,
-    tabs: [...tabs.values()].map(getTabSnapshot)
+    tabs: [...tabs.values()].map(getTabSnapshot),
+    preferences,
+    downloads: [...downloads.values()]
   });
 }
 
@@ -47,29 +126,7 @@ function sendNavigationState(tab) {
 }
 
 function resolveAddress(input) {
-  const value = input.trim();
-  if (!value) return START_URL;
-
-  if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(value)) {
-    let destination;
-    try {
-      destination = new URL(value);
-    } catch {
-      return null;
-    }
-    return isWebUrl(destination.href) ? destination.href : null;
-  }
-
-  if (!/\s/.test(value) && value.includes(".")) {
-    try {
-      const destination = new URL(`https://${value}`);
-      return isWebUrl(destination.href) ? destination.href : null;
-    } catch {
-      return null;
-    }
-  }
-
-  return `${START_URL}search?q=${encodeURIComponent(value)}`;
+  return resolveBrowserAddress(input, new URL(START_URL).origin);
 }
 
 function updateViewBounds() {
@@ -79,9 +136,9 @@ function updateViewBounds() {
   if (!activeTab) return;
   activeTab.view.setBounds({
     x: 0,
-    y: CHROME_HEIGHT,
+    y: chromeHeight,
     width,
-    height: Math.max(0, height - CHROME_HEIGHT)
+    height: Math.max(0, height - chromeHeight)
   });
 }
 
@@ -100,7 +157,7 @@ function selectTab(tabId) {
   return true;
 }
 
-function createTab(address = START_URL, shouldFocus = true) {
+function createTab(address = NEW_TAB_URL, shouldFocus = true) {
   if (!window || window.isDestroyed()) return null;
 
   const tabId = String(nextTabId++);
@@ -111,9 +168,10 @@ function createTab(address = START_URL, shouldFocus = true) {
       sandbox: true
     }
   });
-  const tab = { id: tabId, title: "New tab", view, favicon: getFaviconUrl([], address) };
+  const tab = { id: tabId, title: "New tab", view, favicon: getFaviconUrl([], address), isNewTab: false };
   tabs.set(tabId, tab);
-  installInAppNavigation(view.webContents, (url) => createTab(url, true));
+  const trustedNewTabUrl = pathToFileURL(path.join(__dirname, "newtab.html")).href;
+  installInAppNavigation(view.webContents, (url) => createTab(url, true), trustedNewTabUrl);
   installBrowserKeyboardShortcuts(view.webContents);
 
   view.webContents.on("page-title-updated", (_event, title) => {
@@ -132,11 +190,24 @@ function createTab(address = START_URL, shouldFocus = true) {
     sendNavigationState(tab);
   });
   view.webContents.on("did-navigate", () => {
+    tab.isNewTab = !isWebUrl(view.webContents.getURL());
+    tab.error = "";
     tab.favicon = getFaviconUrl([], view.webContents.getURL() || address);
     sendNavigationState(tab);
     sendBrowserState();
+    void persistSession().catch((error) => console.error("Could not save browser tabs.", error));
   });
-  view.webContents.on("did-navigate-in-page", () => sendNavigationState(tab));
+  view.webContents.on("did-fail-load", (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+    if (!isMainFrame || errorCode === -3) return;
+    tab.error = `Could not load ${validatedURL}: ${errorDescription || "network error"}. Check the address and connection, then reload.`;
+    sendBrowserState();
+    sendNavigationState(tab);
+  });
+  view.webContents.on("did-navigate-in-page", () => {
+    tab.isNewTab = !isWebUrl(view.webContents.getURL());
+    sendNavigationState(tab);
+    void persistSession().catch((error) => console.error("Could not save browser tabs.", error));
+  });
   view.webContents.on("page-favicon-updated", (_event, favicons) => {
     tab.favicon = getFaviconUrl(favicons, view.webContents.getURL() || address);
     sendBrowserState();
@@ -148,15 +219,14 @@ function createTab(address = START_URL, shouldFocus = true) {
       activeTabId = null;
       const nextTab = tabs.values().next().value;
       if (nextTab) selectTab(nextTab.id);
-      else if (window && !window.isDestroyed()) createTab(START_URL, true);
+      else if (window && !window.isDestroyed()) createTab(NEW_TAB_URL, true);
     }
     sendBrowserState();
   });
 
   if (shouldFocus || activeTabId === null) selectTab(tabId);
-  void view.webContents.loadURL(address).catch((error) => {
-    console.error("Could not navigate ZENVORA tab.", error);
-  });
+  loadTab(tab, address);
+  void persistSession().catch((error) => console.error("Could not save browser tabs.", error));
   sendBrowserState();
   return tabId;
 }
@@ -176,11 +246,29 @@ function closeTab(tabId) {
     if (nextTab) {
       selectTab(nextTab.id);
     } else {
-      createTab(START_URL, true);
+      createTab(NEW_TAB_URL, true);
     }
   } else {
     sendBrowserState();
   }
+  void persistSession().catch((error) => console.error("Could not save browser tabs.", error));
+}
+
+function moveTab(tabId, targetId) {
+  const currentIds = [...tabs.keys()];
+  const reorderedIds = reorderTabIds(currentIds, tabId, targetId);
+  if (reorderedIds === currentIds || reorderedIds.length !== tabs.size) return false;
+  const orderedTabs = reorderedIds.map((id) => [id, tabs.get(id)]);
+  tabs.clear();
+  for (const [id, tab] of orderedTabs) tabs.set(id, tab);
+  sendBrowserState();
+  void persistSession().catch((error) => console.error("Could not save browser tab order.", error));
+  return true;
+}
+
+function sendDownloads() {
+  if (!window || window.isDestroyed() || window.webContents.isLoading()) return;
+  window.webContents.send("browser:downloads", [...downloads.values()]);
 }
 
 function installBrowserKeyboardShortcuts(webContents) {
@@ -193,13 +281,19 @@ function installBrowserKeyboardShortcuts(webContents) {
 
     if (shortcut.action === "new-tab") {
       event.preventDefault();
-      createTab(START_URL, true);
+      createTab(NEW_TAB_URL, true);
     } else if (shortcut.action === "close-tab") {
       event.preventDefault();
       closeTab(currentTab.id);
     } else if (shortcut.action === "focus-address") {
       event.preventDefault();
       window.webContents.send("browser:focus-address");
+    } else if (shortcut.action === "downloads") {
+      event.preventDefault();
+      window.webContents.send("browser:show-downloads");
+    } else if (shortcut.action === "fullscreen") {
+      event.preventDefault();
+      window.setFullScreen(!window.isFullScreen());
     } else if (shortcut.action === "cycle-tab") {
       event.preventDefault();
       const openTabs = [...tabs.values()];
@@ -224,7 +318,7 @@ function getSenderTab(event) {
 
 function registerIpcHandlers() {
   ipcMain.handle("browser:new-tab", (_event, address) => {
-    const resolved = typeof address === "string" ? resolveAddress(address) : START_URL;
+    const resolved = typeof address === "string" ? resolveAddress(address) : NEW_TAB_URL;
     if (!resolved) return null;
     return createTab(resolved, true);
   });
@@ -237,14 +331,68 @@ function registerIpcHandlers() {
     closeTab(tabId);
     return true;
   });
+  ipcMain.handle("browser:move-tab", (event, tabId, targetId) => {
+    if (event.sender !== window?.webContents || typeof tabId !== "string" || typeof targetId !== "string") return false;
+    return moveTab(tabId, targetId);
+  });
+  ipcMain.handle("browser:get-preferences", (event) => {
+    if (event.sender !== window?.webContents) return null;
+    return preferences;
+  });
+  ipcMain.handle("browser:save-preferences", async (event, value) => {
+    if (event.sender !== window?.webContents || !value || typeof value !== "object") return false;
+    const updated = normalizeBrowserPreferences(value, START_URL);
+    if (value.homepageType === "custom" && updated.homepageUrl === START_URL) return false;
+    preferences = updated;
+    await persistPreferences();
+    sendBrowserState();
+    return true;
+  });
+  ipcMain.handle("browser:toggle-bookmark", async (event, snapshot) => {
+    if (event.sender !== window?.webContents || !snapshot || typeof snapshot.url !== "string" || !isWebUrl(snapshot.url)) return null;
+    const existing = preferences.bookmarks.findIndex((bookmark) => bookmark.url === snapshot.url);
+    if (existing >= 0) preferences.bookmarks.splice(existing, 1);
+    else preferences.bookmarks.unshift({
+      title: typeof snapshot.title === "string" ? snapshot.title.slice(0, 120) : snapshot.url,
+      url: snapshot.url
+    });
+    await persistPreferences();
+    sendBrowserState();
+    return { bookmarked: existing < 0, bookmarks: preferences.bookmarks };
+  });
+  ipcMain.handle("browser:open-download", (event, downloadId) => {
+    if (event.sender !== window?.webContents || typeof downloadId !== "string") return false;
+    const download = downloads.get(downloadId);
+    if (!download || !download.path) return false;
+    shell.showItemInFolder(download.path);
+    return true;
+  });
+  ipcMain.handle("browser:toggle-fullscreen", (event) => {
+    if (event.sender !== window?.webContents) return false;
+    window.setFullScreen(!window.isFullScreen());
+    return window.isFullScreen();
+  });
+  ipcMain.handle("browser:home", (event) => {
+    if (event.sender !== window?.webContents) return false;
+    const tab = getTab(activeTabId);
+    if (!tab) return false;
+    loadTab(tab, getHomeUrl());
+    return true;
+  });
+  ipcMain.handle("browser:open-bookmark", (event, bookmarkUrl) => {
+    if (event.sender !== window?.webContents || typeof bookmarkUrl !== "string"
+      || !preferences.bookmarks.some((bookmark) => bookmark.url === bookmarkUrl)) return false;
+    const tab = getTab(activeTabId);
+    if (!tab) return false;
+    loadTab(tab, bookmarkUrl);
+    return true;
+  });
   ipcMain.handle("browser:navigate", (event, value) => {
     const tab = getSenderTab(event);
     if (!tab || typeof value !== "string" || value.length > 2048) return false;
     const destination = resolveAddress(value);
     if (!destination) return false;
-    void tab.view.webContents.loadURL(destination).catch((error) => {
-      console.error("Could not navigate ZENVORA tab.", error);
-    });
+    loadTab(tab, destination);
     return true;
   });
   ipcMain.handle("browser:back", (event) => {
@@ -268,7 +416,18 @@ function registerIpcHandlers() {
   });
   ipcMain.on("browser:ready", (event) => {
     if (event.sender !== window?.webContents) return;
-    if (tabs.size === 0) createTab(START_URL, true);
+    if (tabs.size === 0) {
+      void loadSession().then((saved) => {
+        if (!saved?.urls.length) {
+          createTab(getHomeUrl(), true);
+          return;
+        }
+        saved.urls.forEach((url, index) => createTab(url, index === Math.min(saved.activeIndex, saved.urls.length - 1)));
+      }).catch((error) => {
+        console.error("Could not restore browser tabs.", error);
+        createTab(getHomeUrl(), true);
+      });
+    }
     sendBrowserState();
   });
 }
@@ -310,6 +469,40 @@ function createWindow() {
 
 app.whenReady().then(() => {
   registerIpcHandlers();
+  void loadPreferences().then(() => {
+    const defaultSession = session.defaultSession;
+    defaultSession.on("will-download", (_event, item) => {
+      const downloadId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const download = {
+        id: downloadId,
+        filename: item.getFilename(),
+        url: item.getURL(),
+        path: item.getSavePath(),
+        receivedBytes: 0,
+        totalBytes: item.getTotalBytes(),
+        state: "progressing"
+      };
+      downloads.set(downloadId, download);
+      sendDownloads();
+      item.on("updated", (_downloadEvent, state) => {
+        download.receivedBytes = item.getReceivedBytes();
+        download.totalBytes = item.getTotalBytes();
+        download.state = state;
+        sendDownloads();
+      });
+      item.once("done", (_downloadEvent, state) => {
+        download.receivedBytes = item.getReceivedBytes();
+        download.totalBytes = item.getTotalBytes();
+        download.path = item.getSavePath();
+        download.state = state;
+        sendDownloads();
+      });
+    });
+    createWindow();
+  }).catch((error) => {
+    console.error("Could not initialize ZENVORA browser preferences.", error);
+    app.quit();
+  });
   const trustedOrigin = new URL(START_URL).origin;
   let microphoneGranted = false;
   const isTrustedTab = (webContents) => [...tabs.values()]
@@ -352,7 +545,6 @@ app.whenReady().then(() => {
       callback(false);
     });
   });
-  createWindow();
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });

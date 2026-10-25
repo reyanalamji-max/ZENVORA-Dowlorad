@@ -15,6 +15,18 @@ const MAX_ACCOUNT_WEBSITES = 500;
 const MAX_ASSISTANT_MESSAGES = 12;
 const MAX_ASSISTANT_MESSAGE_LENGTH = 4000;
 const GEMINI_MODEL = "gemini-3-flash-preview";
+const GEMINI_MODELS = new Set([GEMINI_MODEL, "gemini-2.5-flash", "gemini-2.5-pro"]);
+const GEMINI_IMAGE_MODEL = "gemini-3.1-flash-lite-image";
+const ASSISTANT_MODES = new Set(["chat", "research", "canvas", "live", "code", "website", "docs"]);
+const ASSISTANT_MODE_INSTRUCTIONS = {
+  chat: "Answer naturally in the language used by the user. Be clear, respectful, and concise.",
+  research: "Help the user research the topic carefully. Distinguish established facts from uncertainty and never claim to have browsed or verified live sources.",
+  canvas: "Help the user plan and create. Organize substantial outputs with clear sections, practical steps, and useful examples.",
+  live: "Answer naturally in the language used by the user. Keep replies concise and conversational for voice playback.",
+  code: "Act as a careful programming assistant. Provide working code, explain how to use it, and call out assumptions or missing context.",
+  website: "Act as a web developer. When asked to build a website, provide complete, runnable HTML/CSS/JavaScript or clearly separated project files, and explain how to run them.",
+  docs: "Draft polished, well-structured documents in the format and tone requested by the user."
+};
 const scrypt = promisify(scryptCallback);
 const GEMINI_KEY_PLACEHOLDER = /^(?:replace[-_ ]with|your[-_ ]|placeholder\b|<)/i;
 const DEFAULT_SETTINGS = {
@@ -40,6 +52,7 @@ const STATIC_FILES = {
   "/admin": ["admin.html", "text/html; charset=utf-8"],
   "/open": ["viewer.html", "text/html; charset=utf-8"],
   "/assistant": ["assistant.html", "text/html; charset=utf-8"],
+  "/browser": ["browser.html", "text/html; charset=utf-8"],
   "/download": ["download.html", "text/html; charset=utf-8"],
   "/download-app": ["desktop-app/dist/ZENVORA Search Setup 1.0.0.exe", "application/octet-stream"],
   "/app.js": ["app.js", "text/javascript; charset=utf-8"],
@@ -52,6 +65,8 @@ const STATIC_FILES = {
   "/viewer.js": ["viewer.js", "text/javascript; charset=utf-8"],
   "/assistant.js": ["assistant.js", "text/javascript; charset=utf-8"],
   "/assistant.css": ["assistant.css", "text/css; charset=utf-8"],
+  "/browser.js": ["browser.js", "text/javascript; charset=utf-8"],
+  "/browser.css": ["browser.css", "text/css; charset=utf-8"],
   "/offline.html": ["offline.html", "text/html; charset=utf-8"],
   "/manifest.webmanifest": ["manifest.webmanifest", "application/manifest+json; charset=utf-8"],
   "/service-worker.js": ["service-worker.js", "text/javascript; charset=utf-8"],
@@ -70,6 +85,7 @@ const NOINDEX_PATHS = new Set([
   "/admin",
   "/open",
   "/assistant",
+  "/browser",
   "/offline.html",
   "/download-app"
 ]);
@@ -235,8 +251,8 @@ function send(response, status, body, contentType = "text/plain; charset=utf-8",
     "Content-Type": contentType,
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
-    "X-Frame-Options": "DENY",
-    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://www.google.com https://*.gstatic.com; connect-src 'self'; frame-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+    "X-Frame-Options": "SAMEORIGIN",
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://www.google.com https://*.gstatic.com; connect-src 'self'; frame-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'self'",
     ...headers
   });
   response.end(body);
@@ -1053,6 +1069,13 @@ export function createApp({
         sendJson(response, 400, { error: `Send between 1 and ${MAX_ASSISTANT_MESSAGES} chat messages.` });
         return;
       }
+      const assistantMode = body.mode ?? "chat";
+      const assistantModel = body.model ?? GEMINI_MODEL;
+      if (typeof assistantMode !== "string" || !ASSISTANT_MODES.has(assistantMode)
+        || typeof assistantModel !== "string" || !GEMINI_MODELS.has(assistantModel)) {
+        sendJson(response, 400, { error: "Choose a supported AI mode and model." });
+        return;
+      }
       const messages = [];
       for (let index = 0; index < body.messages.length; index += 1) {
         const message = body.messages[index];
@@ -1074,7 +1097,7 @@ export function createApp({
       let providerResponse;
       try {
         providerResponse = await fetchImpl(
-          `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${assistantModel}:generateContent`,
           {
             method: "POST",
             headers: {
@@ -1083,7 +1106,7 @@ export function createApp({
             },
             body: JSON.stringify({
               systemInstruction: {
-                parts: [{ text: "You are ZENVORA AI, a helpful conversational assistant. Answer naturally in the language used by the user. Be clear, respectful, and concise." }]
+                parts: [{ text: `You are ZENVORA AI, a helpful conversational assistant. ${ASSISTANT_MODE_INSTRUCTIONS[assistantMode]}` }]
               },
               contents: messages,
               generationConfig: { maxOutputTokens: 1024 }
@@ -1126,6 +1149,101 @@ export function createApp({
         return;
       }
       sendJson(response, 200, { answer });
+      return;
+    }
+
+    if (url.pathname === "/api/assistant/image" && request.method === "POST") {
+      if (!sameOrigin(request)) {
+        sendJson(response, 403, { error: "Request origin is not allowed." });
+        return;
+      }
+      if (!configuredGeminiApiKey) {
+        sendJson(response, 503, {
+          error: "Image generation is not configured on this server. Add GEMINI_API_KEY in the Render environment settings, then redeploy."
+        });
+        return;
+      }
+      if (!checkAuthRateLimit(request, "assistant-image", 4, 60 * 1000)) {
+        sendJson(response, 429, { error: "Too many image requests. Please wait before generating another image." });
+        return;
+      }
+      const body = await readJson(request);
+      if (!isObject(body) || typeof body.prompt !== "string"
+        || !body.prompt.trim() || body.prompt.length > 2000) {
+        sendJson(response, 400, { error: "Describe the image in 1 to 2000 characters." });
+        return;
+      }
+
+      let providerResponse;
+      try {
+        providerResponse = await fetchImpl(
+          `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": configuredGeminiApiKey
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: body.prompt.trim() }] }],
+              generationConfig: { responseModalities: ["TEXT", "IMAGE"] }
+            }),
+            signal: AbortSignal.timeout(60000)
+          }
+        );
+      } catch (error) {
+        console.error("Gemini image generation request failed:", error);
+        sendJson(response, 502, { error: "The image service could not be reached. Please try again." });
+        return;
+      }
+      if (!providerResponse.ok) {
+        console.error("Gemini image generation returned HTTP", providerResponse.status);
+        let providerError;
+        try {
+          providerError = await providerResponse.json();
+        } catch {
+          providerError = null;
+        }
+        const providerReason = [
+          providerError?.error?.status,
+          providerError?.error?.message,
+          ...(Array.isArray(providerError?.error?.details)
+            ? providerError.error.details.map((detail) => detail?.reason || detail?.quotaMetric || detail?.quotaId)
+            : [])
+        ].filter((value) => typeof value === "string").join(" ").toLowerCase();
+        const errorMessage = providerResponse.status === 400 || providerResponse.status === 401
+          ? "Gemini rejected the image request. Check that GEMINI_API_KEY is valid and image generation is enabled."
+          : providerResponse.status === 403
+            ? "Gemini denied image access. Check the API key restrictions, project access, and billing settings."
+            : providerResponse.status === 404
+              ? "The Gemini image model is unavailable for this API key."
+              : providerResponse.status === 429
+                ? /rate.?limit|per.minute|per.second|requests_per_minute|tokens_per_minute/.test(providerReason)
+                  ? "The Gemini image model is temporarily rate-limited. Wait a minute, then try again. Check this project's active limits at https://aistudio.google.com/rate-limit?timeRange=last-28-days."
+                  : "The Gemini image quota for this project is exhausted or unavailable. Check the project's quota and billing at https://aistudio.google.com/rate-limit?timeRange=last-28-days. A new API key for the same project will not increase its quota."
+                : "The image service could not generate an image right now. Please try again later.";
+        sendJson(response, 502, { error: errorMessage });
+        return;
+      }
+      let providerData;
+      try {
+        providerData = await providerResponse.json();
+      } catch {
+        sendJson(response, 502, { error: "The image service returned an invalid response." });
+        return;
+      }
+      const imagePart = providerData?.candidates?.[0]?.content?.parts?.find((part) =>
+        typeof part?.inlineData?.data === "string"
+        && ["image/png", "image/jpeg", "image/webp"].includes(part.inlineData.mimeType));
+      if (!imagePart || imagePart.inlineData.data.length > 8 * 1024 * 1024
+        || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(imagePart.inlineData.data)) {
+        sendJson(response, 502, { error: "The image service returned no usable image. Please try a different prompt." });
+        return;
+      }
+      sendJson(response, 200, {
+        imageData: imagePart.inlineData.data,
+        mimeType: imagePart.inlineData.mimeType
+      });
       return;
     }
 

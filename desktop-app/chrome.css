@@ -3,6 +3,11 @@
   font-family: "Segoe UI", Arial, sans-serif;
   color: #202a36;
   background: #dcebea;
+  --chrome-surface: #f5f8f7;
+  --chrome-tab-surface: #f5f8f7;
+  --chrome-field: #e3eeed;
+  --chrome-foreground: #38444d;
+  --chrome-border: #dfe6e4;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -20,6 +25,72 @@ body {
   background: #dcebea;
 }
 
+html[data-theme="dark"] {
+  color-scheme: dark;
+  color: #e5eaf0;
+  background: #20252d;
+  --chrome-surface: #292f38;
+  --chrome-tab-surface: #292f38;
+  --chrome-field: #1d222a;
+  --chrome-foreground: #e5eaf0;
+  --chrome-border: #3a414c;
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] .browser-chrome,
+html[data-theme="dark"] .toolbar {
+  color: var(--chrome-foreground);
+  background: var(--chrome-surface);
+}
+
+html[data-theme="dark"] .tab-item {
+  color: #c0c8d2;
+  background: #343b46;
+}
+
+html[data-theme="dark"] .tab-item.is-active {
+  color: #f3f6fa;
+  background: #1e232b;
+}
+
+html[data-theme="dark"] .toolbar {
+  border-bottom-color: var(--chrome-border);
+}
+
+html[data-theme="dark"] .toolbar-button,
+html[data-theme="dark"] .new-tab-button {
+  color: #d6dce5;
+}
+
+html[data-theme="dark"] .address-form,
+html[data-theme="dark"] .address-form:hover,
+html[data-theme="dark"] .address-form:focus-within {
+  background: var(--chrome-field);
+  border-color: #454e5b;
+}
+
+html[data-theme="dark"] .address-form input {
+  color: var(--chrome-foreground);
+}
+
+html[data-theme="dark"] .browser-panel {
+  color: #e5eaf0;
+  background: #292f38;
+  border-color: #414955;
+}
+
+html[data-theme="dark"] .panel-list-item,
+html[data-theme="dark"] .browser-settings-form input,
+html[data-theme="dark"] .browser-settings-form select {
+  color: #e5eaf0;
+  background: #1e232b;
+  border-color: #414955;
+}
+
+html[data-theme="dark"] .panel-list-item:hover {
+  background: #373f4b;
+}
+
 button,
 input {
   font: inherit;
@@ -33,6 +104,12 @@ button {
   height: 112px;
   background: #dcebea;
   user-select: none;
+}
+
+body.panel-open,
+body.panel-open .browser-chrome {
+  height: 326px;
+  overflow: visible;
 }
 
 .tabbar {
@@ -162,6 +239,133 @@ button {
   padding: 8px 13px 12px;
   background: #f5f8f7;
   border-bottom: 1px solid #dfe6e4;
+}
+
+.utility-button {
+  font-size: 17px;
+}
+
+.toolbar-button:focus-visible,
+.new-tab-button:focus-visible,
+.panel-close-button:focus-visible,
+.panel-list-item:focus-visible,
+.settings-save-button:focus-visible {
+  outline: 3px solid rgb(65 105 225 / 55%);
+  outline-offset: 2px;
+}
+
+.toolbar-button[aria-pressed="true"] {
+  color: #315fce;
+  background: rgb(65 105 225 / 12%);
+}
+
+.browser-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 214px;
+  padding: 13px 18px;
+  overflow-y: auto;
+  color: #25313a;
+  background: #f5f8f7;
+  border-bottom: 1px solid var(--chrome-border);
+  box-shadow: 0 8px 24px rgb(20 38 48 / 13%);
+}
+
+.browser-panel[hidden] {
+  display: none;
+}
+
+.browser-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 28px;
+  font-size: 14px;
+}
+
+.panel-close-button {
+  width: 28px;
+  height: 28px;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 21px;
+}
+
+.panel-close-button:hover {
+  background: rgb(80 100 110 / 12%);
+}
+
+.browser-panel-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.panel-list-item {
+  min-width: 0;
+  padding: 9px 12px;
+  overflow: hidden;
+  color: #37444d;
+  background: #fff;
+  border: 1px solid #dfe6e4;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-list-item:hover {
+  background: #edf3f2;
+}
+
+.panel-empty {
+  margin: 5px 0;
+  color: #64737c;
+  font-size: 13px;
+}
+
+.browser-settings-form {
+  display: grid;
+  grid-template-columns: minmax(130px, 180px) minmax(200px, 300px) auto;
+  align-items: center;
+  gap: 9px 13px;
+  max-width: 780px;
+  font-size: 12px;
+}
+
+.browser-settings-form label {
+  font-weight: 600;
+}
+
+.browser-settings-form input,
+.browser-settings-form select {
+  min-width: 0;
+  min-height: 34px;
+  padding: 6px 9px;
+  color: #35424b;
+  background: #fff;
+  border: 1px solid #d5dedd;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.settings-save-button {
+  grid-column: 3;
+  grid-row: 1 / span 3;
+  align-self: center;
+  min-height: 36px;
+  padding: 0 14px;
+  color: #fff;
+  background: linear-gradient(120deg, #4169e1, #7956d6);
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 650;
 }
 
 .history-controls {
@@ -319,4 +523,15 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .tab-loading { animation: none; }
   .address-form { transition: none; }
+}
+
+@media (max-width: 940px) {
+  .utility-button {
+    width: 29px;
+    flex-basis: 29px;
+  }
+
+  .ask-ai-toolbar-button {
+    padding: 0 10px;
+  }
 }

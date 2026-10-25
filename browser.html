@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#edf2f8">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>ZENVORA Browser</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
+    <link rel="stylesheet" href="/browser.css">
+    <script src="/browser.js" defer></script>
+  </head>
+  <body>
+    <main class="browser-app">
+      <header class="browser-shell">
+        <div class="browser-tabs-row">
+          <div class="web-tabs" id="web-tabs" role="tablist" aria-label="ZENVORA tabs"></div>
+          <button class="web-new-tab" id="web-new-tab" type="button" title="New tab (Ctrl+T)" aria-label="New tab">+</button>
+          <span class="browser-brand"><img src="/logo.svg" alt="" width="25" height="25"><span>ZENVORA</span></span>
+        </div>
+        <div class="web-toolbar">
+          <button class="web-icon-button" id="web-back" type="button" aria-label="Back" title="Back" disabled>←</button>
+          <button class="web-icon-button" id="web-forward" type="button" aria-label="Forward" title="Forward" disabled>→</button>
+          <button class="web-icon-button" id="web-reload" type="button" aria-label="Reload" title="Reload">↻</button>
+          <button class="web-icon-button" id="web-stop" type="button" aria-label="Stop loading" title="Stop loading" hidden>×</button>
+          <button class="web-icon-button" id="web-home" type="button" aria-label="Home" title="Home">⌂</button>
+          <form class="web-address-form" id="web-address-form">
+            <label class="sr-only" for="web-address">Search ZENVORA or enter a website</label>
+            <span aria-hidden="true">⌕</span>
+            <input id="web-address" autocomplete="off" spellcheck="false" placeholder="Search ZENVORA or enter a website">
+            <button type="submit" aria-label="Go">↵</button>
+          </form>
+          <button class="web-icon-button" id="web-bookmark" type="button" aria-label="Bookmark this page" title="Bookmark this page" aria-pressed="false">☆</button>
+          <button class="web-icon-button" id="web-bookmarks" type="button" aria-label="Show bookmarks" title="Bookmarks">★</button>
+          <button class="web-icon-button" id="web-downloads" type="button" aria-label="Downloads" title="Downloads">↓</button>
+          <button class="web-icon-button" id="web-settings" type="button" aria-label="Settings" title="Settings">⚙</button>
+          <button class="web-icon-button" id="web-fullscreen" type="button" aria-label="Full screen" title="Full screen">⛶</button>
+        </div>
+        <div class="web-panel" id="web-panel" hidden></div>
+        <p class="web-status" id="web-status" role="status" aria-live="polite"></p>
+      </header>
+      <section class="web-content" id="web-content" aria-label="Open page"></section>
+    </main>
+  </body>
+</html>

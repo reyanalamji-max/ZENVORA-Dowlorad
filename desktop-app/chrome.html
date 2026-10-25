@@ -34,9 +34,15 @@
           <input id="address-input" type="text" inputmode="url" spellcheck="false" placeholder="Search ZENVORA or enter a website address">
           <button class="address-go" type="submit" title="Go" aria-label="Go">↵</button>
         </form>
+        <button class="toolbar-button utility-button" id="bookmark-button" type="button" title="Bookmark this page" aria-label="Bookmark this page" aria-pressed="false">☆</button>
+        <button class="toolbar-button utility-button" id="bookmarks-panel-button" type="button" title="Bookmarks" aria-label="Bookmarks">★</button>
+        <button class="toolbar-button utility-button" id="downloads-button" type="button" title="Downloads (Ctrl+D)" aria-label="Downloads">↓</button>
+        <button class="toolbar-button utility-button" id="settings-button" type="button" title="Settings" aria-label="Settings">⚙</button>
+        <button class="toolbar-button utility-button" id="fullscreen-button" type="button" title="Toggle fullscreen (Ctrl+F)" aria-label="Toggle fullscreen">⛶</button>
         <button class="ask-ai-toolbar-button" id="ask-ai-button" type="button" title="Open ZENVORA AI" aria-label="Ask to AI"><span aria-hidden="true">✦</span> Ask to AI</button>
         <button class="toolbar-button more-button" id="more-button" type="button" title="ZENVORA" aria-label="ZENVORA">⋮</button>
       </div>
+      <section class="browser-panel" id="browser-panel" aria-live="polite" hidden></section>
     </header>
   </body>
 </html>

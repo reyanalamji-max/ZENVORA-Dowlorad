@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+    <title>New Tab - ZENVORA</title>
+    <link rel="icon" href="zenvora-icon.png">
+    <link rel="stylesheet" href="newtab.css">
+    <script src="newtab.js" defer></script>
+  </head>
+  <body>
+    <main class="newtab">
+      <div class="newtab-content">
+        <img class="newtab-logo" src="zenvora-icon.png" alt="">
+        <p class="newtab-eyebrow">YOUR WEB, YOUR WAY</p>
+        <h1>Welcome to ZENVORA</h1>
+        <p class="newtab-copy">Search the web or jump back into a favorite place.</p>
+        <form class="newtab-search" id="newtab-search">
+          <label class="sr-only" for="newtab-query">Search or enter a website</label>
+          <span aria-hidden="true">⌕</span>
+          <input id="newtab-query" placeholder="Search ZENVORA or enter a website address" autocomplete="off">
+          <button type="submit">Search</button>
+        </form>
+        <section class="newtab-shortcuts" aria-label="Quick access">
+          <a href="https://zenvora-dowlorad.onrender.com/" class="newtab-shortcut">
+            <span class="shortcut-icon">Z</span><span>ZENVORA Search</span>
+          </a>
+          <a href="https://zenvora-dowlorad.onrender.com/apps" class="newtab-shortcut">
+            <span class="shortcut-icon">A</span><span>Apps</span>
+          </a>
+          <a href="https://zenvora-dowlorad.onrender.com/videos" class="newtab-shortcut">
+            <span class="shortcut-icon">▶</span><span>Videos</span>
+          </a>
+          <a href="https://zenvora-dowlorad.onrender.com/assistant" class="newtab-shortcut">
+            <span class="shortcut-icon">✦</span><span>ZENVORA AI</span>
+          </a>
+          <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" class="newtab-shortcut">
+            <span class="shortcut-icon shortcut-red">▶</span><span>YouTube</span>
+          </a>
+          <a href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer" class="newtab-shortcut">
+            <span class="shortcut-icon shortcut-green">C</span><span>ChatGPT</span>
+          </a>
+          <a href="https://mail.google.com/" target="_blank" rel="noopener noreferrer" class="newtab-shortcut">
+            <span class="shortcut-icon shortcut-gold">M</span><span>Gmail</span>
+          </a>
+          <a href="https://github.com/" target="_blank" rel="noopener noreferrer" class="newtab-shortcut">
+            <span class="shortcut-icon shortcut-dark">⌘</span><span>GitHub</span>
+          </a>
+        </section>
+        <p class="newtab-footer">Open links in a new ZENVORA tab with Ctrl+click, or use Ctrl+T.</p>
+      </div>
+    </main>
+  </body>
+</html>
